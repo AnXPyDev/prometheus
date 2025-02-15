@@ -1,0 +1,8 @@
+#!/bin/sh
+
+. ./global.env
+. ./local.env
+
+cd $TARGET_DIR
+./$APP_NAME
+cd -

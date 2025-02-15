@@ -1,0 +1,21 @@
+#!/bin/sh
+
+. ./global.env
+. ./local.env
+
+OUTFILE="compile_flags.txt"
+
+LSPFLAGS="-xc-header -ferror-limit=0 -Wno-pragma-pack"
+
+{
+	echo -target
+	echo $TARGET_PLATFORM
+	echo "$CFLAGS $LSPFLAGS" | sed 's| |\n|g'
+	echo -I
+	echo $INC_ENV
+	echo -I
+	echo $INC_CCORE
+	echo -include
+	echo $SRC_ENTRY
+} > $OUTFILE
+

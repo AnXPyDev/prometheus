@@ -1,0 +1,16 @@
+#!/bin/sh
+
+. ./global.env
+. ./local.env
+
+[ "$BUILD_DEBUG" ] && CFLAGS="$CFLAGS -g -O0 -DBUILD_DEBUG"
+[ "$BUILD_RELEASE" ] && CFLAGS="$CFLAGS -O3 -DBUILD_RELEASE"
+
+(
+	set -x
+	$CC \
+		$CFLAGS \
+		-I $INC_CCORE \
+		$SRC_ENTRY \
+		-o $TARGET_DIR/$APP_NAME
+)

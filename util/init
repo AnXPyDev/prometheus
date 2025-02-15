@@ -1,0 +1,7 @@
+#!/bin/sh
+
+. ./global.env
+. ./local.env
+
+
+[ -d $TARGET_DIR ] || mkdir $TARGET_DIR

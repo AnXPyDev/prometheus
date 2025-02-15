@@ -1,0 +1,5 @@
+#!/bin/sh
+
+export BUILD_RELEASE=1
+
+util/make
