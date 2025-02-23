@@ -5,5 +5,6 @@
 
 #include "expressions/Test.c"
 #include "expressions/Frame.c"
+#include "expressions/Sequence.c"
 
 #define TREE_INCLUDE

@@ -3,3 +3,4 @@
 #include "Expression.h"
 #include "expressions/Test.c"
 #include "expressions/Frame.c"
+#include "expressions/Sequence.c"
