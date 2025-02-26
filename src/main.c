@@ -1,12 +1,17 @@
 #include <ccore/ccore.h>
 
-#include "simulator/extensions/include.h"
-#include "tree/include.h"
-#include "parser/include.h"
-#include "simulator/include.h"
+#include "include.h"
 
 int main(int argc, char **argv) {
 	g_initStdStreams();
+
+	Type T = PrimitiveType_upcast(PRIMITIVE_TYPE_INT);
+
+	PointerType PT = PointerType_wrap(T);
+
+	PrintFmt(g_os_stdout, "type: {}", Type_repr(PointerType_upcast(&PT)));
+
+	/*
 	g_Parser_setupCharLookupTable();
 
 	ArenaAllocator arena;
@@ -27,4 +32,6 @@ int main(int argc, char **argv) {
 	for (Token* it = Vector_begin(&tokens); it < (Token*)Vector_end(&tokens); it++) {
 		PrintFmt(g_os_stdout, "{}\n", Token_repr(it));
 	}
+	*/
+	return 0;
 }
