@@ -5,11 +5,39 @@
 int main(int argc, char **argv) {
 	g_initStdStreams();
 
-	Type T = PrimitiveType_upcast(PRIMITIVE_TYPE_INT);
+	Member m1 = {
+		.identifier = Identifier_new(strview("foo")),
+		.qualifier = Qualifier_NULL,
+		.type = PrimitiveType_upcast(PRIMITIVE_TYPE_INT)
+	};
 
-	PointerType PT = PointerType_wrap(T);
+	QualifierType Q1 = QualifierType_new(PrimitiveQualifier_upcast(PRIMITIVE_QUALIFIER_CONSTANT), PrimitiveType_upcast(PRIMITIVE_TYPE_INT));
+	
+	Member m2 = {
+		.identifier = Identifier_new(strview("bar")),
+		.qualifier = Qualifier_NULL,
+		.type = QualifierType_upcast(&Q1)
+	};
 
-	PrintFmt(g_os_stdout, "type: {}", Type_repr(PointerType_upcast(&PT)));
+	FunctionType FT = FunctionType_new(QualifierType_upcast(&Q1), PrimitiveType_upcast(PRIMITIVE_TYPE_INT));
+
+	Member m3 = {
+		.identifier = Identifier_new(strview("+")),
+		.qualifier = Qualifier_NULL,
+		.type = FunctionType_upcast(&FT)
+	};
+
+	Frame frame; Frame_create(&frame, g_standardAllocator);
+
+	MemberList_add(&frame.ml, &m1);
+	MemberList_add(&frame.ml, &m2);
+	MemberList_add(&frame.ml, &m3);
+
+	PrintFmt(g_os_stdout, "{}\n", Frame_repr(&frame));
+
+	TypeInfo info; Type_info(QualifierType_upcast(&Q1), &info);
+	PrintFmt(g_os_stdout, "{}\n", TypeInfo_repr(&info));
+
 
 	/*
 	g_Parser_setupCharLookupTable();

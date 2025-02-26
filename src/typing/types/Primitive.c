@@ -1,12 +1,14 @@
+#define PRIMITIVE_TYPE_INT_SIZE (sizeof(int))
+
 typedef enum {
     PRIMITIVE_TYPE_VOID = 0,
     
     // meta
     PRIMITIVE_TYPE_TYPE,
+    PRIMITIVE_TYPE_QUALIFIER,
     PRIMITIVE_TYPE_IDENTIFIER,
 
     // primitive
-    PRIMITIVE_TYPE_POINTER,
     PRIMITIVE_TYPE_INT,
 
     PRIMITIVE_TYPE__END
@@ -14,15 +16,42 @@ typedef enum {
 
 const char *EPrimitiveType_REPR[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_VOID] = "PRIMITIVE_TYPE_VOID",
+
     [PRIMITIVE_TYPE_TYPE] = "PRIMITIVE_TYPE_TYPE",
+    [PRIMITIVE_TYPE_QUALIFIER] = "PRIMITIVE_TYPE_QUALIFIER",
     [PRIMITIVE_TYPE_IDENTIFIER] = "PRIMITIVE_TYPE_IDENTIFIER",
-    [PRIMITIVE_TYPE_INT] = "PRIMITIVE_TYPE_INT"
+
+    [PRIMITIVE_TYPE_INT] = "PRIMITIVE_TYPE_INT",
+};
+
+const char *EPrimitiveType_PRETTY[PRIMITIVE_TYPE__END] = {
+    [PRIMITIVE_TYPE_VOID] = "void",
+
+    [PRIMITIVE_TYPE_TYPE] = "<type>",
+    [PRIMITIVE_TYPE_QUALIFIER] = "<qualifier>",
+    [PRIMITIVE_TYPE_IDENTIFIER] = "<identifier>",
+
+    [PRIMITIVE_TYPE_INT] = "int",
+};
+
+const TypeInfo EPrimitiveType_INFO[PRIMITIVE_TYPE__END] = {
+    [PRIMITIVE_TYPE_VOID] = { .valid = true, .abstract = false, .size = 0 },
+
+    [PRIMITIVE_TYPE_TYPE] = { .valid = true, .abstract = true, .size = 0 },
+    [PRIMITIVE_TYPE_QUALIFIER] = { .valid = true, .abstract = true, .size = 0 },
+    [PRIMITIVE_TYPE_IDENTIFIER] = { .valid = true, .abstract = true, .size = 0 },
+
+    [PRIMITIVE_TYPE_INT] = { .valid = true, .abstract = false, .size = PRIMITIVE_TYPE_INT_SIZE },
 };
 
 #define this ((EPrimitiveType)(intptr_t)vthis)
 
 void PrimitiveType_print(void *vthis, OutStream os, StringView fmt) {
-    OutStream_puts(os, EPrimitiveType_REPR[this]);
+    OutStream_puts(os, EPrimitiveType_PRETTY[this]);
+}
+
+void PrimitiveType_info(void *vthis, TypeInfo *out_info) {
+    *out_info = EPrimitiveType_INFO[this];
 }
 
 #undef this
@@ -39,7 +68,8 @@ Printable PrimitiveType_repr(void *vthis) {
 }
 
 const IType IType_PrimitiveType = {
-    .repr_ = &PrimitiveType_repr
+    .repr_ = &PrimitiveType_repr,
+    .info = &PrimitiveType_info,
 };
 
 Type PrimitiveType_upcast(EPrimitiveType T) {
