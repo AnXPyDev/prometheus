@@ -2,6 +2,7 @@
 
 typedef enum {
     PRIMITIVE_TYPE_VOID = 0,
+    PRIMITIVE_TYPE_ANY,
     
     // meta
     PRIMITIVE_TYPE_TYPE,
@@ -16,6 +17,7 @@ typedef enum {
 
 const char *EPrimitiveType_REPR[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_VOID] = "PRIMITIVE_TYPE_VOID",
+    [PRIMITIVE_TYPE_ANY] = "PRIMITIVE_TYPE_ANY",
 
     [PRIMITIVE_TYPE_TYPE] = "PRIMITIVE_TYPE_TYPE",
     [PRIMITIVE_TYPE_QUALIFIER] = "PRIMITIVE_TYPE_QUALIFIER",
@@ -26,6 +28,7 @@ const char *EPrimitiveType_REPR[PRIMITIVE_TYPE__END] = {
 
 const char *EPrimitiveType_PRETTY[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_VOID] = "void",
+    [PRIMITIVE_TYPE_ANY] = "<any>",
 
     [PRIMITIVE_TYPE_TYPE] = "<type>",
     [PRIMITIVE_TYPE_QUALIFIER] = "<qualifier>",
@@ -36,6 +39,7 @@ const char *EPrimitiveType_PRETTY[PRIMITIVE_TYPE__END] = {
 
 const TypeInfo EPrimitiveType_INFO[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_VOID] = { .valid = true, .abstract = false, .size = 0 },
+    [PRIMITIVE_TYPE_ANY] = { .valid = true, .abstract = true, .size = 0 },
 
     [PRIMITIVE_TYPE_TYPE] = { .valid = true, .abstract = true, .size = 0 },
     [PRIMITIVE_TYPE_QUALIFIER] = { .valid = true, .abstract = true, .size = 0 },

@@ -43,3 +43,7 @@ const IType IType_FunctionType = {
 Type FunctionType_upcast(FunctionType *this) {
 	return (Type) { .interface = &IType_FunctionType, .object = this };
 }
+
+bool Type_isFunctionType(Type this) {
+	return this.interface == &IType_FunctionType;
+}

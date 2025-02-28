@@ -46,6 +46,6 @@ Printable Type_repr(Type this) {
 }
 
 void Type_info(Type this, TypeInfo *info) {
-    if (Type_isNull(this)) return;
+    if (Type_isNull(this)) { *info = TypeInfo_NULL; return; };
     this.interface->info(this.object, info);
 }
