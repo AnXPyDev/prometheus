@@ -17,6 +17,7 @@
 #include "tree/nodes/Set.c"
 #include "tree/nodes/Cast.c"
 #include "tree/nodes/Condition.c"
+#include "tree/nodes/Value.c"
 #include "tree/nodes/Builtin.c"
 
 #include "typing/types/Primitive.c"
@@ -33,3 +34,10 @@
 #include "sim/SimNode.c"
 
 #include "sim/impl/Get.c"
+#include "sim/impl/Set.c"
+#include "sim/impl/Cast.c"
+#include "sim/impl/Sequence.c"
+#include "sim/impl/Frame.c"
+#include "sim/impl/Value.c"
+#include "sim/impl/Condition.c"
+#include "sim/impl/Builtin.c"

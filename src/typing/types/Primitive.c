@@ -48,6 +48,8 @@ const TypeInfo EPrimitiveType_INFO[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_INT] = { .valid = true, .abstract = false, .size = PRIMITIVE_TYPE_INT_SIZE },
 };
 
+Type PrimitiveType_upcast(EPrimitiveType);
+
 #define this ((EPrimitiveType)(intptr_t)vthis)
 
 void PrimitiveType_print(void *vthis, OutStream os, StringView fmt) {
@@ -57,8 +59,6 @@ void PrimitiveType_print(void *vthis, OutStream os, StringView fmt) {
 void PrimitiveType_info(void *vthis, TypeInfo *out_info) {
     *out_info = EPrimitiveType_INFO[this];
 }
-
-#undef this
 
 const IPrintable IPrintable_PrimitiveType = {
     .print = &PrimitiveType_print
@@ -71,9 +71,24 @@ Printable PrimitiveType_repr(void *vthis) {
     };
 }
 
+Type PrimitiveType_copy(void *vthis, Allocator alc) {
+    return PrimitiveType_upcast(this);
+}
+
+Type PrimitiveType_move(void *vthis, Allocator alc, Allocator owner) {
+    return PrimitiveType_upcast(this);
+}
+
+void PrimitiveType_destroy(void *vthis, Allocator alc) {}
+
+#undef this
+
 const IType IType_PrimitiveType = {
     .repr_ = &PrimitiveType_repr,
     .info = &PrimitiveType_info,
+    .copy = &PrimitiveType_copy,
+    .move = &PrimitiveType_move,
+    .destroy = &PrimitiveType_destroy
 };
 
 Type PrimitiveType_upcast(EPrimitiveType T) {

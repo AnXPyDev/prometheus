@@ -30,10 +30,9 @@ SimStackFrame *SimStackFrame_create(FrameNode *frame, Allocator alc) {
 	return this;
 }
 
-SimValue SimStackFrame_getValue(SimStackFrame *this, Member *member) {
+void *SimStackFrame_getValue(SimStackFrame *this, Member *member) {
 	void *data = HashMap_get(&this->membermap, (BufferView) { .size = sizeof(Member*), .data = (char*)&member });
-	if (data) return (SimValue) { .data = data };
+	if (data) return NULL;
 	if (this->parent) return SimStackFrame_getValue(this->parent, member);
-	return SimValue_NULL;
+	return data;
 }
-

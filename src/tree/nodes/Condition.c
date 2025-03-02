@@ -14,7 +14,7 @@ void ConditionNode_print(void *vthis, OutStream os, StringView fmt) {
 	);
 }
 
-Type ConditionNode_resultType(void *vthis, Contract *alc) {
+Type ConditionNode_resultType(void *vthis, Allocator alc) {
 	// TODO implement union of both cases or enforce same type
 	return Node_resultType(this->node_true, alc);
 }
@@ -29,11 +29,9 @@ Printable ConditionNode_repr(void *vthis) {
 	return (Printable) { .interface = &IPrintable_ConditionNode, .object = vthis };
 }
 
-const INode INode_ConditionNode = {
+INode INode_ConditionNode = {
 	.repr_ = &ConditionNode_repr,
 	.resultType = &ConditionNode_resultType,
-
-	.simext = ISimNode_ConditionNode,
 };
 
 Node ConditionNode_upcast(ConditionNode *this) {

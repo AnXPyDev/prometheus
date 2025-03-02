@@ -9,8 +9,8 @@ void SetNode_print(void *vthis, OutStream os, StringView fmt) {
 	PrintFmt(os, "SetNode({} = {})", Member_repr(this->member), Node_repr(this->value));
 }
 
-Type SetNode_resultType(void *vthis, Contract *alc) {
-	return this->member->type;
+Type SetNode_resultType(void *vthis, Allocator alc) {
+	return Type_copy(this->member->type, alc);
 }
 
 #undef this
@@ -23,11 +23,9 @@ Printable SetNode_repr(void *vthis) {
 	return (Printable) { .interface = &IPrintable_SetNode, .object = vthis };
 }
 
-const INode INode_SetNode = {
+INode INode_SetNode = {
 	.repr_ = &SetNode_repr,
 	.resultType = &SetNode_resultType,
-
-	.simext = ISimNode_SetNode,
 };
 
 Node SetNode_upcast(SetNode *this) {

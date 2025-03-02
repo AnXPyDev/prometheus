@@ -9,8 +9,8 @@ void CastNode_print(void *vthis, OutStream os, StringView fmt) {
 	PrintFmt(os, "CastNode({} : {})", Node_repr(this->value), Type_repr(this->T));
 }
 
-Type CastNode_resultType(void *vthis, Contract *alc) {
-	return this->T;
+Type CastNode_resultType(void *vthis, Allocator alc) {
+	return Type_copy(this->T, alc);
 }
 
 #undef this
@@ -23,11 +23,9 @@ Printable CastNode_repr(void *vthis) {
 	return (Printable) { .interface = &IPrintable_CastNode, .object = vthis };
 }
 
-const INode INode_CastNode = {
+INode INode_CastNode = {
 	.repr_ = &CastNode_repr,
 	.resultType = &CastNode_resultType,
-
-	.simext = ISimNode_CastNode,
 };
 
 Node CastNode_upcast(CastNode *this) {

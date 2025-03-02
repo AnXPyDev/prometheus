@@ -10,9 +10,9 @@ void GetNode_print(void *vthis, OutStream os, StringView fmt) {
 	OutStream_puts(os, ")");
 }
 
-Type GetNode_resultType(void *vthis, Contract *alc) {
+Type GetNode_resultType(void *vthis, Allocator alc) {
 	// TODO add logic to detect early return
-	return this->member->type;
+	return Type_copy(this->member->type, alc);
 }
 
 #undef this
@@ -25,11 +25,11 @@ Printable GetNode_repr(void *vthis) {
 	return (Printable) { .interface = &IPrintable_GetNode, .object = vthis };
 }
 
-const INode INode_GetNode = {
+INode INode_GetNode = {
 	.repr_ = &GetNode_repr,
 	.resultType = &GetNode_resultType,
 
-	.simext = ISimNode_SequenceNode,
+	// simext initialized at runtime
 };
 
 Node GetNode_upcast(GetNode *this) {

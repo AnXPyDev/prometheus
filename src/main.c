@@ -4,62 +4,40 @@
 
 int main(int argc, char **argv) {
 	g_initStdStreams();
+	g_SimNode_setup_extension();
 
-	Member m1 = {
-		.identifier = Identifier_new(strview("foo")),
-		.qualifier = Qualifier_NULL,
-		.type = PrimitiveType_upcast(PRIMITIVE_TYPE_INT)
+	SimState simstate = {
+		.alc = g_standardAllocator,
+		.is_in = g_is_stdin,
+		.os_out = g_os_stdout,
+		.os_err = g_os_stderr
 	};
-
-	QualifierType Q1 = QualifierType_new(PrimitiveQualifier_upcast(PRIMITIVE_QUALIFIER_CONSTANT), PrimitiveType_upcast(PRIMITIVE_TYPE_INT));
-	
-	Member m2 = {
-		.identifier = Identifier_new(strview("bar")),
-		.qualifier = Qualifier_NULL,
-		.type = QualifierType_upcast(&Q1)
-	};
-
-	FunctionType FT = FunctionType_new(QualifierType_upcast(&Q1), PrimitiveType_upcast(PRIMITIVE_TYPE_INT));
-
-	Member m3 = {
-		.identifier = Identifier_new(strview("+")),
-		.qualifier = Qualifier_NULL,
-		.type = FunctionType_upcast(&FT)
-	};
-
-	Frame frame; Frame_create(&frame, g_standardAllocator);
-
-	MemberList_add(&frame.ml, &m1);
-	MemberList_add(&frame.ml, &m2);
-	MemberList_add(&frame.ml, &m3);
-
-	PrintFmt(g_os_stdout, "{}\n", Frame_repr(&frame));
-
-	TypeInfo info; Type_info(QualifierType_upcast(&Q1), &info);
-	PrintFmt(g_os_stdout, "{}\n", TypeInfo_repr(&info));
-
-
-	/*
-	g_Parser_setupCharLookupTable();
 
 	ArenaAllocator arena;
-	ArenaAllocator_create(&arena, g_standardAllocator, 512);
+	ArenaAllocator_create(&arena, simstate.alc, 2048);
 
-	return 0;
+	SimContext context = {
+		.frame = NULL,
+		.state = &simstate,
+		.temp_alc = ArenaAllocator_upcast(&arena)
+	};
 
-	Parser parser;
-	Parser_create(&parser, ArenaAllocator_upcast(&arena));
 
-	Vector tokens = Vector_new(g_standardAllocator, sizeof(Token));
-	ParserInStream input;
-	ParserInStream_create(&input, strview("stdin"), g_is_stdin, g_standardAllocator);
+	ValueNode *val = ValueNode_create(context.temp_alc,
+		PrimitiveType_upcast(PRIMITIVE_TYPE_INT),
+		(char*)(&(int) { 255 })
+	);
 
-	Parser_tokenize(&parser, &input, &tokens);
+	Node args[] = { ValueNode_upcast(val), ValueNode_upcast(val) };
 
-	OutStream_puts(g_os_stdout, "Tokenizer output:\n");
-	for (Token* it = Vector_begin(&tokens); it < (Token*)Vector_end(&tokens); it++) {
-		PrintFmt(g_os_stdout, "{}\n", Token_repr(it));
-	}
-	*/
+	Array arrArgs = toArray(args);
+	
+	BuiltinNode *print_node = BuiltinNode_create(&Sim_builtin_printArgs, arrArgs, context.temp_alc);
+	
+
+	SimNode_evaluate(BuiltinNode_upcast(print_node), &context);
+
+	ArenaAllocator_destroy(&arena);
+
 	return 0;
 }

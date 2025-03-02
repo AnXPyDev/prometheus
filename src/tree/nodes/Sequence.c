@@ -3,7 +3,7 @@ typedef struct {
 	Node nodes[];
 } SequenceNode;
 
-SequenceNode *SequenceNode_alloc(Array nodes, Allocator alc) {
+SequenceNode *SequenceNode_create(Array nodes, Allocator alc) {
 	SequenceNode *this = Allocator_malloc(alc, sizeof(SequenceNode) + sizeof(Node) * nodes.size);
 	this->size = nodes.size;
 	memcpy(this->nodes, nodes.data, sizeof(Node) * nodes.size);
@@ -21,7 +21,7 @@ void SequenceNode_print(void *vthis, OutStream os, StringView fmt) {
 	OutStream_puts(os, ")");
 }
 
-Type SequenceNode_resultType(void *vthis, Contract *alc) {
+Type SequenceNode_resultType(void *vthis, Allocator alc) {
 	// TODO add logic to detect early return
 	return Node_resultType(this->nodes[this->size - 1], alc);
 }
@@ -37,10 +37,9 @@ Printable SequenceNode_repr(void *vthis) {
 	return (Printable) { .interface = &IPrintable_SequenceNode, .object = vthis };
 }
 
-const INode INode_SequenceNode = {
+INode INode_SequenceNode = {
 	.repr_ = &SequenceNode_repr,
 	.resultType = &SequenceNode_resultType,
-	.simext = ISimNode_SequenceNode,
 };
 
 Node SequenceNode_upcast(SequenceNode *this) {

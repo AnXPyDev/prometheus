@@ -35,17 +35,15 @@ Printable FrameNode_repr(void *vthis) {
     return (Printable) { .interface = &IPrintable_FrameNode, .object = vthis };
 }
 
-Type FrameNode_resultType(void *vthis, Contract *alc) {
+Type FrameNode_resultType(void *vthis, Allocator alc) {
     return Node_resultType(this->root, alc);
 }
 
 #undef this
 
-const INode INode_FrameNode = {
+INode INode_FrameNode = {
     .repr_ = &FrameNode_repr,
     .resultType = &FrameNode_resultType,
-
-    .simext = ISimNode_FrameNode,
 };
 
 Node FrameNode_upcast(FrameNode *this) {

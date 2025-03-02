@@ -26,12 +26,18 @@ Printable TypeInfo_repr(TypeInfo *this) {
     return (Printable) { .interface = &IPrintable_TypeInfo, .object = this };
 }
 
+struct Type;
+
 typedef struct {
     Printable (*repr_)(void *this);
     void (*info)(void *this, TypeInfo *out_typeinfo);
+    Size (*size)(void *this);
+    void (*destroy)(void *this, Allocator alc);
+    struct Type (*copy)(void *this, Allocator alc);
+    struct Type (*move)(void *this, Allocator alc, Allocator owner);
 } IType;
 
-typedef struct {
+typedef struct Type {
     const IType *interface;
     void *object;
 } Type;
@@ -48,4 +54,25 @@ Printable Type_repr(Type this) {
 void Type_info(Type this, TypeInfo *info) {
     if (Type_isNull(this)) { *info = TypeInfo_NULL; return; };
     this.interface->info(this.object, info);
+}
+
+Size Type_size(Type this)  {
+    if (this.interface->size) { return this.interface->size(this.object); }
+    TypeInfo ti; Type_info(this, &ti);
+    return ti.size;
+}
+
+Type Type_copy(Type this, Allocator alc) {
+    if (Type_isNull(this)) return Type_NULL;
+    return this.interface->copy(this.object, alc);
+}
+
+Type Type_move(Type this, Allocator alc, Allocator owner) {
+    if (Type_isNull(this)) return Type_NULL;
+    return this.interface->move(this.object, alc, owner);
+}
+
+void Type_destroy(Type this, Allocator alc) {
+    if (Type_isNull(this)) return;
+    this.interface->destroy(this.object, alc);
 }
