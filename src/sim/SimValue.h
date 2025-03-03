@@ -1,6 +1,6 @@
 typedef struct {
 	Type type;
-	void *data;
+	const void *data;
 } SimValue;
 
 const SimValue SimValue_NULL = { .type = Type_NULL, .data = NULL };
@@ -9,7 +9,7 @@ bool SimValue_isNull(SimValue this) {
 	return this.data == NULL || Type_isNull(this.type);
 }
 
-SimValue SimValue_create(void *data, Type T, Allocator alc) {
+SimValue SimValue_create(const void *data, Type T, Allocator alc) {
 	Type type = Type_copy(T, alc);
 	Size ts = Type_size(type);
 	void *new_data = Allocator_malloc(alc, ts);
@@ -40,3 +40,6 @@ const IPrintable IPrintable_SimValue = {
 Printable SimValue_repr(SimValue *this) {
 	return (Printable) { .interface = &IPrintable_SimValue, .object = this };
 }
+
+SimValue SimValue_INT_1;
+SimValue SimValue_INT_0;

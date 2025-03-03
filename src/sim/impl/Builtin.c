@@ -41,4 +41,31 @@ SimValue Sim_builtin_printArgs_(Array args, SimContext *context) {
 	return SimValue_NULL;
 }
 
+SimValue Sim_builtin_equals_(Array args, SimContext *context) {
+	if (args.size != 2) {
+		OutStream_puts(context->state->os_err, "Sim_builtin_equals_: wrong arg count\n");
+		return SimValue_NULL;
+	}
+
+	SimValue *argv = args.data;
+
+	if (SimValue_isNull(argv[0]) || SimValue_isNull(argv[1])) {
+		return SimValue_NULL;
+	}
+
+	Size ts = Type_size(argv[0].type);
+
+	if (ts != Type_size(argv[0].type)) {
+		PrintFmt(context->state->os_err, "Sim_builtin_equals_ non matching types ({} != {})", Type_repr(argv[0].type), Type_repr(argv[1].type));
+		return SimValue_NULL;
+	}
+
+	if (memcmp(argv[0].data, argv[1].data, ts) == 0) {
+		return SimValue_INT_1;
+	}
+
+	return SimValue_INT_0;
+}
+
 const Sim_builtin_fn_t Sim_builtin_printArgs = &Sim_builtin_printArgs_;
+const Sim_builtin_fn_t Sim_builtin_equals = &Sim_builtin_equals_;

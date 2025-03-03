@@ -5,6 +5,7 @@
 int main(int argc, char **argv) {
 	g_initStdStreams();
 	g_SimNode_setup_extension();
+	g_SimValue_setup_consts();
 
 	SimState simstate = {
 		.alc = g_standardAllocator,
@@ -32,10 +33,12 @@ int main(int argc, char **argv) {
 
 	Array arrArgs = toArray(args);
 	
-	BuiltinNode *print_node = BuiltinNode_create(&Sim_builtin_printArgs, arrArgs, context.temp_alc);
+	BuiltinNode *print_node = BuiltinNode_create(&Sim_builtin_equals, arrArgs, context.temp_alc);
 	
 
-	SimNode_evaluate(BuiltinNode_upcast(print_node), &context);
+	SimValue result = SimNode_evaluate(BuiltinNode_upcast(print_node), &context);
+
+	PrintFmt(g_os_stdout, "{}\n", SimValue_repr(&result));
 
 	ArenaAllocator_destroy(&arena);
 
