@@ -1,8 +1,7 @@
 #define this ((ValueNode*)vthis)
 
-SimValue ValueNode_SimNode_evaluate(void *vthis, SimContext *context) {
-	SimValue val = SimValue_create(this->data, this->T, context->temp_alc);
-	return val;
+void ValueNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_result) {
+	out_result->value = SimValue_create(this->data, this->T, context->temp_alc);
 }
 
 const ISimNode ISimNode_ValueNode = {

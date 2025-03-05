@@ -3,15 +3,18 @@ typedef struct {
     Node root;
 } FrameNode;
 
-void FrameNode_create(FrameNode *this, Allocator alc) {
-    MemberList_create(&this->ml, alc);
+Node FrameNode_upcast(FrameNode*);
+Node FrameNode_create(Allocator alc) {
+    FrameNode *this = Allocator_malloc(alc, sizeof(FrameNode));
+    MemberList_init(&this->ml, alc);
     this->root = Node_NULL;
+    return FrameNode_upcast(this);
 }
 
 #define this ((FrameNode*)vthis)
 
 void FrameNode_print(void *vthis, OutStream os, StringView fmt) {
-    OutStream_puts(os, "FrameNode(MemberList {");
+    OutStream_puts(os, "Frame([");
 
     {
         MemberNode *end = Vector_end(&this->ml.nodes);
@@ -24,7 +27,7 @@ void FrameNode_print(void *vthis, OutStream os, StringView fmt) {
         Member_print(&it->member, os, BufferView_NULL);
     }
 
-    PrintFmt(os, "}; {})", Node_repr(this->root));
+    PrintFmt(os, "]; {})", Node_repr(this->root));
 }
 
 const IPrintable IPrintable_FrameNode = {
@@ -39,11 +42,17 @@ Type FrameNode_resultType(void *vthis, Allocator alc) {
     return Node_resultType(this->root, alc);
 }
 
+void FrameNode_destroy(void *vthis, Allocator alc) {
+    MemberList_deinit(&this->ml, alc);
+    Node_destroy(this->root, alc);
+}
+
 #undef this
 
 INode INode_FrameNode = {
     .repr_ = &FrameNode_repr,
     .resultType = &FrameNode_resultType,
+    .destroy = &FrameNode_destroy,
 };
 
 Node FrameNode_upcast(FrameNode *this) {

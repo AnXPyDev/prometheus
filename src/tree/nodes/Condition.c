@@ -4,10 +4,19 @@ typedef struct {
 	Node node_false;
 } ConditionNode;
 
+Node ConditionNode_upcast(ConditionNode*);
+Node ConditionNode_create(Node condition, Node branch_true, Node branch_false, Allocator alc) {
+	ConditionNode *this = Allocator_malloc(alc, sizeof(ConditionNode));
+	this->condition = condition;
+	this->node_true = branch_true;
+	this->node_false = branch_false;
+	return ConditionNode_upcast(this);
+}
+
 #define this ((ConditionNode*)vthis)
 
 void ConditionNode_print(void *vthis, OutStream os, StringView fmt) {
-	PrintFmt(os, "ConditionNode({} ? {} : {})",
+	PrintFmt(os, "Condition({} ? {} : {})",
 		Node_repr(this->condition),
 		Node_repr(this->node_true),
 		Node_repr(this->node_false)
@@ -15,8 +24,17 @@ void ConditionNode_print(void *vthis, OutStream os, StringView fmt) {
 }
 
 Type ConditionNode_resultType(void *vthis, Allocator alc) {
-	// TODO implement union of both cases or enforce same type
-	return Node_resultType(this->node_true, alc);
+	return UnionType_create_move((Array) { .data = (Type[]) {
+		Node_resultType(this->node_true, alc),
+		Node_resultType(this->node_false, alc)
+	}, .size = 2 }, alc);
+}
+
+void ConditionNode_destroy(void *vthis, Allocator alc)  {
+	Node_destroy(this->condition, alc);
+	Node_destroy(this->node_true, alc);
+	Node_destroy(this->node_false, alc);
+	Allocator_free(alc, vthis);
 }
 
 #undef this
@@ -32,6 +50,7 @@ Printable ConditionNode_repr(void *vthis) {
 INode INode_ConditionNode = {
 	.repr_ = &ConditionNode_repr,
 	.resultType = &ConditionNode_resultType,
+	.destroy = &ConditionNode_destroy,
 };
 
 Node ConditionNode_upcast(ConditionNode *this) {

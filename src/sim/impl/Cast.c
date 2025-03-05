@@ -1,9 +1,8 @@
 #define this ((CastNode*)vthis)
 
-SimValue CastNode_SimNode_evaluate(void *vthis, SimContext *context) {
+void CastNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_result) {
 	// TODO implement casting
-	fprintf(stderr, "TODO cast");
-	return SimNode_evaluate(this->value, context);
+	OutStream_puts(context->state->os_err, "TODO: Implement casting!\n");
 }
 
 const ISimNode ISimNode_CastNode = {

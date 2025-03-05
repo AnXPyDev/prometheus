@@ -1,0 +1,44 @@
+typedef enum {
+	SIM_CONTROL_SIGNAL_NONE = 0,
+	SIM_CONTROL_SIGNAL_BREAK,
+	SIM_CONTROL_SIGNAL_JUMP,
+	SIM_CONTROL_SIGNAL_RETURN,
+	SIM_CONTROL_SIGNAL_THROW,
+	SIM_CONTROL_SIGNAL_EXIT,
+	SIM_CONTROL_SIGNAL__END
+} ESimControlSignal;
+
+const char *ESimControlSignal_REPR[SIM_CONTROL_SIGNAL__END] = {
+	[SIM_CONTROL_SIGNAL_BREAK] = "CONTROL_SIGNAL_BREAK",
+	[SIM_CONTROL_SIGNAL_JUMP] = "CONTROL_SIGNAL_JUMP",
+	[SIM_CONTROL_SIGNAL_RETURN] = "CONTROL_SIGNAL_RETURN",
+	[SIM_CONTROL_SIGNAL_THROW] = "CONTROL_SIGNAL_THROW",
+	[SIM_CONTROL_SIGNAL_EXIT] = "CONTROL_SIGNAL_EXIT"
+};
+
+const char *ESimControlSignal_PRETTY[SIM_CONTROL_SIGNAL__END] = {
+	[SIM_CONTROL_SIGNAL_BREAK] = "break",
+	[SIM_CONTROL_SIGNAL_JUMP] = "jump",
+	[SIM_CONTROL_SIGNAL_RETURN] = "return",
+	[SIM_CONTROL_SIGNAL_THROW] = "throw",
+	[SIM_CONTROL_SIGNAL_EXIT] = "exit"
+};
+
+
+typedef struct {
+	ESimControlSignal control;
+	void *control_origin;
+	void *control_target;
+	SimValue value;
+} SimResult;
+
+const SimResult SimResult_NULL = {
+	.control = SIM_CONTROL_SIGNAL_NONE,
+	.control_origin = NULL,
+	.control_target = NULL,
+	.value = SimValue_NULL
+};
+
+void SimResult_forward(SimResult *from, SimResult *to) {
+	memcpy(to, from, sizeof(SimResult));
+}

@@ -1,13 +1,16 @@
 #define this ((GetNode*)vthis)
 
-SimValue GetNode_SimNode_evaluate(void *vthis, SimContext *context) {
+void GetNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_result) {
 	void *data = SimStackFrame_getValue(context->frame, this->member);
 	if (!data) {
-		fprintf(stderr, "GetNode error");
-		return SimValue_NULL;
+		SimResult_throwMessage("GetNode: cannot get member", vthis, context, out_result);
+		goto interrupt;
 	}
 
-	return SimValue_create(data, this->member->type, context->temp_alc);
+	out_result->value = SimValue_create(data, this->member->type, context->temp_alc);
+
+	interrupt:;
+	return;
 }
 
 const ISimNode ISimNode_GetNode = {

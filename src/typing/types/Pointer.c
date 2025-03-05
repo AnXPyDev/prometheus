@@ -4,22 +4,17 @@ typedef struct {
     Type T;
 } PointerType;
 
-PointerType PointerType_new(Type T) {
-    return (PointerType) { .T = T };
-}
-
-PointerType *PointerType_create(Type T, Allocator alc) {
+Type PointerType_upcast(PointerType*);
+Type PointerType_create(Type T, Allocator alc) {
     PointerType *this = Allocator_malloc(alc, sizeof(PointerType));
     this->T = Type_copy(T, alc);
-    return this;
+    return PointerType_upcast(this);
 }
-
-Type PointerType_upcast(PointerType*);
 
 #define this ((PointerType*)vthis)
 
 void Printable_PointerType_print(void *vthis, OutStream os, StringView fmt) {
-    PrintFmt(os, "Pointer({})", Type_repr(this->T));
+    PrintFmt(os, "@<{}>", Type_repr(this->T));
 }
 
 const IPrintable IPrintable_PointerType = {
@@ -45,15 +40,8 @@ void PointerType_destroy(void *vthis, Allocator alc) {
 }
 
 Type PointerType_copy(void *vthis, Allocator alc) {
-    return PointerType_upcast(PointerType_create(this->T, alc));
+    return PointerType_create(this->T, alc);
 }
-
-Type PointerType_move(void *vthis, Allocator alc, Allocator owner) {
-    Type result = PointerType_copy(vthis, alc);
-    PointerType_destroy(vthis, owner);
-    return result;
-}
-
 
 #undef this
 
@@ -62,11 +50,14 @@ const IType IType_PointerType = {
     .repr_ = &PointerType_repr,
     .info = &PointerType_info,
     .copy = &PointerType_copy,
-    .move = &PointerType_move,
     .destroy = &PointerType_destroy
 };
 
 Type PointerType_upcast(PointerType *this) {
     return (Type) { .interface = &IType_PointerType, .object = this };
+}
+
+bool Type_isPointerType(Type this) {
+    return this.interface == &IType_PointerType;
 }
 

@@ -2,17 +2,26 @@ typedef struct {
 	Member *member;
 } GetNode;
 
+Node GetNode_upcast(GetNode*);
+Node GetNode_create(Member *member, Allocator alc) {
+	GetNode *this = Allocator_malloc(alc, sizeof(GetNode));
+	this->member = member;
+	return GetNode_upcast(this);
+}
+
 #define this ((GetNode*)vthis)
 
 void GetNode_print(void *vthis, OutStream os, StringView fmt) {
-	OutStream_puts(os, "GetNode(");
-	Member_print(this->member, os, BufferView_NULL);
-	OutStream_puts(os, ")");
+	PrintFmt(os, "GetNode({})", Member_repr(this->member));
 }
 
 Type GetNode_resultType(void *vthis, Allocator alc) {
 	// TODO add logic to detect early return
 	return Type_copy(this->member->type, alc);
+}
+
+void GetNode_destroy(void *vthis, Allocator alc) {
+	Allocator_free(alc, vthis);
 }
 
 #undef this
@@ -28,6 +37,7 @@ Printable GetNode_repr(void *vthis) {
 INode INode_GetNode = {
 	.repr_ = &GetNode_repr,
 	.resultType = &GetNode_resultType,
+	.destroy = &GetNode_destroy,
 
 	// simext initialized at runtime
 };

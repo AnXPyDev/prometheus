@@ -4,9 +4,11 @@
 #include "tree/Identifier.c"
 #include "tree/Member.c"
 
+#include "sim/SimMemberListCache.h"
 #include "sim/SimStackFrame.h"
 #include "sim/SimContext.h"
 #include "sim/SimValue.h"
+#include "sim/SimResult.h"
 #include "sim/SimNode.h"
 
 #include "tree/Node.c"
@@ -19,18 +21,25 @@
 #include "tree/nodes/Condition.c"
 #include "tree/nodes/Value.c"
 #include "tree/nodes/Builtin.c"
+#include "tree/nodes/Control.c"
 
 #include "typing/types/Primitive.c"
 #include "typing/types/Pointer.c"
 #include "typing/types/Qualifier.c"
 #include "typing/types/Function.c"
+#include "typing/types/Union.c"
+#include "typing/types/Tuple.c"
+#include "typing/types/Array.c"
 
 #include "typing/qualifiers/Primitive.c"
+#include "typing/qualifiers/Union.c"
 
 
+#include "sim/SimMemberListCache.c"
 #include "sim/SimStackFrame.c"
 #include "sim/SimContext.c"
 #include "sim/SimValue.c"
+#include "sim/SimResult.c"
 #include "sim/SimNode.c"
 
 #include "sim/impl/Get.c"

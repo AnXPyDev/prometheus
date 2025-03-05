@@ -2,41 +2,54 @@
 
 #include "include.h"
 
+Node ValueNode_createInt(int i, Allocator alc) {
+	return ValueNode_create(
+		PrimitiveType_upcast(PRIMITIVE_TYPE_INT),
+		(char*)&i,
+		alc
+	);
+}
+
 int main(int argc, char **argv) {
 	g_initStdStreams();
 	g_SimNode_setup_extension();
 	g_SimValue_setup_consts();
 
+	ArenaAllocator arena;
+	ArenaAllocator_create(&arena, g_standardAllocator, 2048);
+	Allocator alc = ArenaAllocator_upcast(&arena);
+
 	SimState simstate = {
 		.alc = g_standardAllocator,
+		.temp_alc = alc,
 		.is_in = g_is_stdin,
 		.os_out = g_os_stdout,
-		.os_err = g_os_stderr
+		.os_err = g_os_stderr,
 	};
-
-	ArenaAllocator arena;
-	ArenaAllocator_create(&arena, simstate.alc, 2048);
+	
+	SimState_init(&simstate);
 
 	SimContext context = {
 		.frame = NULL,
 		.state = &simstate,
-		.temp_alc = ArenaAllocator_upcast(&arena)
+		.temp_alc = alc
 	};
 
-
-	ValueNode *val = ValueNode_create(context.temp_alc,
-		PrimitiveType_upcast(PRIMITIVE_TYPE_INT),
-		(char*)(&(int) { 255 })
+	Node root = ConditionNode_create(
+		BuiltinNode_create(&Sim_builtin_equals, (Array) { .size = 2, .data = (Node[]) {
+			ValueNode_createInt(5, alc),
+			ValueNode_createInt(1, alc)
+		} }, alc),
+		BuiltinNode_create(&Sim_builtin_printArgs, (Array) { .size = 1, .data = (Node[]) {
+			ValueNode_createInt(1, alc),
+		} }, alc),
+		BuiltinNode_create(&Sim_builtin_printArgs, (Array) { .size = 1, .data = (Node[]) {
+			ValueNode_createInt(0, alc)
+		} }, alc),
+		alc
 	);
 
-	Node args[] = { ValueNode_upcast(val), ValueNode_upcast(val) };
-
-	Array arrArgs = toArray(args);
-	
-	BuiltinNode *print_node = BuiltinNode_create(&Sim_builtin_equals, arrArgs, context.temp_alc);
-	
-
-	SimValue result = SimNode_evaluate(BuiltinNode_upcast(print_node), &context);
+	SimValue result = SimNode_evaluate(root, &context);
 
 	PrintFmt(g_os_stdout, "{}\n", SimValue_repr(&result));
 

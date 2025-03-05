@@ -19,9 +19,14 @@ typedef struct {
     HashMap heads;
 } MemberList;
 
-void MemberList_create(MemberList *this, Allocator alc) {
+void MemberList_init(MemberList *this, Allocator alc) {
     Vector_create(&this->nodes, alc, sizeof(MemberNode));
     HashMap_create(&this->heads, alc, sizeof(MemberHead));
+}
+
+void MemberList_deinit(MemberList *this, Allocator alc) {
+    Vector_destroy(&this->nodes);
+    HashMap_destroy(&this->heads);
 }
 
 void MemberList_add(MemberList *this, Member *member) {

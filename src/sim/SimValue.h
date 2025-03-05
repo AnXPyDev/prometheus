@@ -38,6 +38,7 @@ const IPrintable IPrintable_SimValue = {
 };
 
 Printable SimValue_repr(SimValue *this) {
+	if (SimValue_isNull(*this)) return Printable_NULL;
 	return (Printable) { .interface = &IPrintable_SimValue, .object = this };
 }
 

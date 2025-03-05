@@ -1,5 +1,5 @@
 typedef struct {
-	SimValue (*evaluate)(void *this, SimContext *context);
+	void (*evaluate)(void *this, SimContext *context, SimResult *result);
 } ISimNode;
 
 extern const ISimNode ISimNode_GetNode;

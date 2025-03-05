@@ -1,13 +1,21 @@
 #define this ((SequenceNode*)vthis)
 
-SimValue SequenceNode_SimNode_evaluate(void *vthis, SimContext *context) {
+void SequenceNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_result) {
+	SimResult result = SimResult_NULL;
 	Node *end = this->nodes + this->size;
-	SimValue result = SimValue_NULL;
 	for (Node *it = this->nodes; it < end; it++) {
-		result = SimNode_evaluate(*it, context);
+		SimNode_evaluate(*it, context, &result);
+		if (result.control) {
+			SimResult_forward(&result, out_result);
+			goto interrupt;
+		}
 	}
 
-	return result;
+	out_result->value = result.value;
+	return;
+
+	interrupt:;
+	return;
 }
 
 const ISimNode ISimNode_SequenceNode = {

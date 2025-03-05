@@ -3,12 +3,14 @@ typedef struct {
 	char data[];
 } ValueNode;
 
-ValueNode *ValueNode_create(Allocator alc, Type T, char *data) {
+Node ValueNode_upcast(ValueNode*);
+
+Node ValueNode_create(Type T, char *data, Allocator alc) {
 	Size ts = Type_size(T);
 	ValueNode *this = Allocator_malloc(alc, sizeof(ValueNode) + ts);
 	this->T = Type_copy(T, alc);
 	memcpy(this->data, data, ts);
-	return this;
+	return ValueNode_upcast(this);
 }
 
 #define this ((ValueNode*)vthis)
@@ -18,11 +20,16 @@ void ValueNode_print(void *vthis, OutStream os, StringView fmt) {
 
 	Dumper dumper = Dumper_new((BufferView) { .data = this->data, .size = ts }, 0);
 
-	PrintFmt(os, "ValueNode({}; {})", Type_repr(this->T), Dumper_repr(&dumper));
+	PrintFmt(os, "Value({}; {})", Type_repr(this->T), Dumper_repr(&dumper));
 }
 
 Type ValueNode_resultType(void *vthis, Allocator alc) {
 	return Type_copy(this->T, alc);
+}
+
+void ValueNode_destroy(void *vthis, Allocator alc) {
+	Type_destroy(this->T, alc);
+	Allocator_free(alc, vthis);
 }
 
 #undef this
@@ -38,6 +45,7 @@ Printable ValueNode_repr(void *vthis) {
 INode INode_ValueNode = {
 	.repr_ = &ValueNode_repr,
 	.resultType = &ValueNode_resultType,
+	.destroy = &ValueNode_destroy
 };
 
 Node ValueNode_upcast(ValueNode *this) {

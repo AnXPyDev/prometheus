@@ -34,7 +34,6 @@ typedef struct {
     Size (*size)(void *this);
     void (*destroy)(void *this, Allocator alc);
     struct Type (*copy)(void *this, Allocator alc);
-    struct Type (*move)(void *this, Allocator alc, Allocator owner);
 } IType;
 
 typedef struct Type {
@@ -67,12 +66,8 @@ Type Type_copy(Type this, Allocator alc) {
     return this.interface->copy(this.object, alc);
 }
 
-Type Type_move(Type this, Allocator alc, Allocator owner) {
-    if (Type_isNull(this)) return Type_NULL;
-    return this.interface->move(this.object, alc, owner);
-}
-
 void Type_destroy(Type this, Allocator alc) {
     if (Type_isNull(this)) return;
     this.interface->destroy(this.object, alc);
 }
+

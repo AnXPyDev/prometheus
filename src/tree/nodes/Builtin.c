@@ -4,12 +4,13 @@ typedef struct {
 	Node nodes[];
 } BuiltinNode;
 
-BuiltinNode *BuiltinNode_create(const void *builtin, Array nodes, Allocator alc) {
+Node BuiltinNode_upcast(BuiltinNode *this);
+Node BuiltinNode_create(const void *builtin, Array nodes, Allocator alc) {
 	BuiltinNode *this = Allocator_malloc(alc, sizeof(BuiltinNode) + sizeof(Node) * nodes.size);
 	this->builtin = builtin;
 	this->size = nodes.size;
 	memcpy(this->nodes, nodes.data, sizeof(Node) * nodes.size);
-	return this;
+	return BuiltinNode_upcast(this);
 }
 
 #define this ((BuiltinNode*)vthis)
@@ -30,6 +31,14 @@ Type BuiltinNode_resultType(void *vthis, Allocator alc) {
 	return Node_resultType(this->nodes[this->size - 1], alc);
 }
 
+void BuiltinNode_destroy(void *vthis, Allocator alc) {
+	Node *end = this->nodes + this->size;
+	for (Node *it = this->nodes; it < end; it++) {
+		Node_destroy(*it, alc);
+	}
+	Allocator_free(alc, vthis);
+}
+
 
 #undef this
 
@@ -44,6 +53,7 @@ Printable BuiltinNode_repr(void *vthis) {
 INode INode_BuiltinNode = {
 	.repr_ = &BuiltinNode_repr,
 	.resultType = &BuiltinNode_resultType,
+	.destroy = &BuiltinNode_destroy
 };
 
 Node BuiltinNode_upcast(BuiltinNode *this) {

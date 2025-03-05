@@ -1,8 +1,12 @@
 typedef struct {
 	Allocator alc;
+	Allocator temp_alc;
+
 	OutStream os_out;
 	OutStream os_err;
 	InStream is_in;
+
+	SimMemberListCache mlCache;
 } SimState;
 
 typedef struct {

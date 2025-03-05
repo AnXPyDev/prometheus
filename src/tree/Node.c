@@ -1,6 +1,7 @@
 typedef struct {
     Printable (*repr_)(void *this);
     Type (*resultType)(void *this, Allocator alc);
+    void (*destroy)(void *this, Allocator alc);
 
     ISimNode simext;
 } INode;
@@ -22,4 +23,9 @@ Printable Node_repr(Node this) {
 Type Node_resultType(Node this, Allocator alc) {
     if (Node_isNull(this)) return Type_NULL;
     return this.interface->resultType(this.object, alc);
+}
+
+void Node_destroy(Node this, Allocator alc) {
+    if (Node_isNull(this)) return;
+    this.interface->destroy(this.object, alc);
 }

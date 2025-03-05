@@ -1,21 +1,36 @@
 typedef SimValue SimValue_t;
-typedef SimValue_t (*Sim_builtin_fn_t)(Array args, SimContext *context);
+typedef void (*Sim_builtin_fn_t)(Array args, SimContext *context, SimResult *result);
 
 #define this ((BuiltinNode*)vthis)
 
-SimValue BuiltinNode_SimNode_evaluate(void *vthis, SimContext *context) {
+void BuiltinNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_result) {
 	SimValue *values = Allocator_malloc(context->temp_alc, sizeof(SimValue) * this->size);
 
 	Node *end = this->nodes + this->size;
 	SimValue *rp = values;
 
 	for (Node *it = this->nodes; it < end; it++) {
-		*(rp++) = SimNode_evaluate(*it, context);
+		SimResult result = SimResult_NULL; SimNode_evaluate(*it, context, &result);
+		if (result.control) {
+			SimResult_forward(&result, out_result);
+			goto interrupt;
+		}
+		*(rp++) = result.value;
 	}
 
 	Sim_builtin_fn_t builtin = *(Sim_builtin_fn_t*)this->builtin;
 
-	return builtin((Array) { .data = values, .size = this->size }, context);
+	builtin((Array) { .data = values, .size = this->size }, context, out_result);
+
+	if (out_result->control) {
+		out_result->control_origin = vthis;
+		goto interrupt;
+	}
+
+	interrupt: 
+	Allocator_free(context->temp_alc, values);
+
+	return;
 }
 
 const ISimNode ISimNode_BuiltinNode = {
@@ -24,7 +39,7 @@ const ISimNode ISimNode_BuiltinNode = {
 
 #undef this
 
-SimValue Sim_builtin_printArgs_(Array args, SimContext *context) {
+void Sim_builtin_printArgs_(Array args, SimContext *context, SimResult *out_result) {
 	SimValue *end = (SimValue*)args.data + args.size;
 	SimValue *it;
 
@@ -37,34 +52,33 @@ SimValue Sim_builtin_printArgs_(Array args, SimContext *context) {
 	SimValue_print(it, os, BufferView_NULL);
 
 	OutStream_putc(os, '\n');
-
-	return SimValue_NULL;
 }
 
-SimValue Sim_builtin_equals_(Array args, SimContext *context) {
+void Sim_builtin_equals_(Array args, SimContext *context, SimResult *out_result) {
 	if (args.size != 2) {
-		OutStream_puts(context->state->os_err, "Sim_builtin_equals_: wrong arg count\n");
-		return SimValue_NULL;
+		SimResult_throwMessage("Sim_builtin_equals: wrong number of args", NULL, context, out_result);
+		return;
 	}
 
 	SimValue *argv = args.data;
 
 	if (SimValue_isNull(argv[0]) || SimValue_isNull(argv[1])) {
-		return SimValue_NULL;
+		SimResult_throwMessage("Sim_builtin_equals: arg is NULL", NULL, context, out_result);
+		return;
 	}
 
 	Size ts = Type_size(argv[0].type);
 
 	if (ts != Type_size(argv[0].type)) {
-		PrintFmt(context->state->os_err, "Sim_builtin_equals_ non matching types ({} != {})", Type_repr(argv[0].type), Type_repr(argv[1].type));
-		return SimValue_NULL;
+		SimResult_throwMessage("Sim_builtin_equals non matching types", NULL, context, out_result);
+		return;
 	}
 
 	if (memcmp(argv[0].data, argv[1].data, ts) == 0) {
-		return SimValue_INT_1;
+		out_result->value = SimValue_INT_1; return;
 	}
 
-	return SimValue_INT_0;
+	out_result->value = SimValue_INT_0; return;
 }
 
 const Sim_builtin_fn_t Sim_builtin_printArgs = &Sim_builtin_printArgs_;

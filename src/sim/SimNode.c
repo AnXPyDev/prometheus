@@ -9,6 +9,6 @@ void g_SimNode_setup_extension(void) {
 	INode_BuiltinNode.simext = ISimNode_BuiltinNode;
 }
 
-SimValue SimNode_evaluate(Node this, SimContext *context) {
-	return this.interface->simext.evaluate(this.object, context);
+void SimNode_evaluate(Node this, SimContext *context, SimResult *result) {
+	this.interface->simext.evaluate(this.object, context, result);
 }
