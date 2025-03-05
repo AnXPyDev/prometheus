@@ -76,6 +76,16 @@ void UnionType_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+bool UnionType_equal(void *vthis, void *vother) {
+	UnionType *other = vother;
+	if (this->size != other->size) return false;
+	Type *oit = other->elements;
+	Type *end = this->elements + this->size;
+	for (Type *it = this->elements; it < end; it++) {
+		if (!Type_equal(*it, *(oit++))) return false;
+	}
+}
+
 #undef this
 
 const IType IType_UnionType = {

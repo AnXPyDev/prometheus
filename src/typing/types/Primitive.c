@@ -90,13 +90,16 @@ Type PrimitiveType_copy(void *vthis, Allocator alc) {
 
 void PrimitiveType_destroy(void *vthis, Allocator alc) {}
 
+bool PrimitiveType_equal(void *vthis, void *vother) { return vthis == vother; }
+
 #undef this
 
 const IType IType_PrimitiveType = {
     .repr_ = &PrimitiveType_repr,
     .info = &PrimitiveType_info,
     .copy = &PrimitiveType_copy,
-    .destroy = &PrimitiveType_destroy
+    .destroy = &PrimitiveType_destroy,
+    .equal = &PrimitiveType_equal,
 };
 
 Type PrimitiveType_upcast(EPrimitiveType T) {

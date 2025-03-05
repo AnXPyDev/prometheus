@@ -18,7 +18,12 @@ void CatchNode_print(void *vthis, OutStream os, StringView fmt) {
 }
 
 Type CatchNode_resultType(void *vthis, Allocator alc) {
-	return Type_copy(this->T, alc);
+	Type RT = Node_resultType(this->value, alc);
+	if (Type_equal(this->T, RT)) {
+		return RT;
+	}
+
+	return UnionType_create((Array) { .data = (Type[]) { this->T, RT }, .size = 2 }, alc);
 }
 
 void CatchNode_destroy(void *vthis, Allocator alc) {

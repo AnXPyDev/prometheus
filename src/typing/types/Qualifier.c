@@ -42,13 +42,20 @@ void QualifierType_destroy(void *vthis, Allocator alc) {
     Allocator_free(alc, vthis);
 }
 
+bool QualifierType_equal(void *vthis, void *vother) {
+    // TODO check qualifier equality
+    QualifierType *other = vother;
+    return Type_equal(this->T, other->T);
+}
+
 #undef this
 
 const IType IType_QualifierType = {
     .repr_ = &QualifierType_repr,
     .info = &QualifierType_info,
     .copy = &QualifierType_copy,
-    .destroy = &QualifierType_destroy
+    .destroy = &QualifierType_destroy,
+    .equal = &QualifierType_equal
 };
 
 Type QualifierType_upcast(QualifierType *this) {

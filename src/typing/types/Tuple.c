@@ -63,13 +63,24 @@ void TupleType_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+bool TupleType_equal(void *vthis, void *vother) {
+	TupleType *other = vother;
+	if (this->size != other->size) return false;
+	Type *oit = other->elements;
+	Type *end = this->elements + this->size;
+	for (Type *it = this->elements; it < end; it++) {
+		if (!Type_equal(*it, *(oit++))) return false;
+	}
+}
+
 #undef this
 
 const IType IType_TupleType = {
     .repr_ = &TupleType_repr,
     .info = &TupleType_info,
     .copy = &TupleType_copy,
-    .destroy = &TupleType_destroy
+    .destroy = &TupleType_destroy,
+	 .equal = &TupleType_equal,
 };
 
 Type TupleType_upcast(TupleType *this) {

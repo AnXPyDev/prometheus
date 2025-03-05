@@ -34,6 +34,7 @@ typedef struct {
     Size (*size)(void *this);
     void (*destroy)(void *this, Allocator alc);
     struct Type (*copy)(void *this, Allocator alc);
+    bool (*equal)(void *this, void *other);
 } IType;
 
 typedef struct Type {
@@ -71,3 +72,11 @@ void Type_destroy(Type this, Allocator alc) {
     this.interface->destroy(this.object, alc);
 }
 
+bool Type_equal(Type this, Type other) {
+    if (this.interface != other.interface) return false;
+    bool this_null = Type_isNull(this), other_null = Type_isNull(other);
+    if (this_null || other_null) return this_null && other_null;
+
+    if (!this.interface->equal) return false;
+    return this.interface->equal(this.object, other.object);
+}

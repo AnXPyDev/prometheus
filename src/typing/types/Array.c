@@ -43,6 +43,12 @@ Type ArrayType_copy(void *vthis, Allocator alc) {
     return ArrayType_create(this->T, this->size, alc);
 }
 
+bool ArrayType_equal(void *vthis, void *vother) {
+    ArrayType *other = vother;
+    if (this->size != other->size) return false;
+    return Type_equal(this->T, other->T);
+}
+
 #undef this
 
 
@@ -50,7 +56,8 @@ const IType IType_ArrayType = {
     .repr_ = &ArrayType_repr,
     .info = &ArrayType_info,
     .copy = &ArrayType_copy,
-    .destroy = &ArrayType_destroy
+    .destroy = &ArrayType_destroy,
+    .equal = &ArrayType_equal,
 };
 
 Type ArrayType_upcast(ArrayType *this) {

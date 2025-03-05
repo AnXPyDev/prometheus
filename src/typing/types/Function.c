@@ -40,6 +40,11 @@ void FunctionType_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+bool FunctionType_equal(void *vthis, void *vother) {
+	FunctionType *other = vother;
+	return Type_equal(this->argument, other->argument) && Type_equal(this->result, other->result);
+}
+
 #undef this
 
 const IPrintable IPrintable_FunctionType = {
@@ -54,7 +59,8 @@ const IType IType_FunctionType = {
 	.repr_ = &FunctionType_repr,
 	.info = &FunctionType_info,
 	.copy = &FunctionType_copy,
-	.destroy = &FunctionType_destroy
+	.destroy = &FunctionType_destroy,
+	.equal = &FunctionType_equal,
 };
 
 Type FunctionType_upcast(FunctionType *this) {

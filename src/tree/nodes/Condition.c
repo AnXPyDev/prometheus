@@ -24,10 +24,13 @@ void ConditionNode_print(void *vthis, OutStream os, StringView fmt) {
 }
 
 Type ConditionNode_resultType(void *vthis, Allocator alc) {
-	return UnionType_create_move((Array) { .data = (Type[]) {
-		Node_resultType(this->node_true, alc),
-		Node_resultType(this->node_false, alc)
-	}, .size = 2 }, alc);
+	Type T1 = Node_resultType(this->node_true, alc);
+	Type T2 = Node_resultType(this->node_false, alc);
+	if (Type_equal(T1, T2)) {
+		return T1;
+	}
+
+	return UnionType_create_move((Array) { .data = (Type[]) { T1, T2 }, .size = 2 }, alc);
 }
 
 void ConditionNode_destroy(void *vthis, Allocator alc)  {

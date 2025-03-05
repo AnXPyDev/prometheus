@@ -43,14 +43,19 @@ Type PointerType_copy(void *vthis, Allocator alc) {
     return PointerType_create(this->T, alc);
 }
 
-#undef this
+bool PointerType_equal(void *vthis, void *vother) {
+    PointerType *other = vother;
+    return Type_equal(this->T, other->T);
+}
 
+#undef this
 
 const IType IType_PointerType = {
     .repr_ = &PointerType_repr,
     .info = &PointerType_info,
     .copy = &PointerType_copy,
-    .destroy = &PointerType_destroy
+    .destroy = &PointerType_destroy,
+    .equal = &PointerType_equal,
 };
 
 Type PointerType_upcast(PointerType *this) {
