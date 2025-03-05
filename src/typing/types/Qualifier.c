@@ -63,7 +63,7 @@ Type QualifierType_upcast(QualifierType *this) {
 }
 
 bool Type_isQualifierType(Type this) {
-    return this.interface = &IType_QualifierType;
+    return this.interface == &IType_QualifierType;
 }
 
 Type Type_strip(Type this) {

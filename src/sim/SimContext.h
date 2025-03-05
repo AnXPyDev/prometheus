@@ -16,4 +16,3 @@ typedef struct {
 	// should be an arena allocator
 	Allocator temp_alc;
 } SimContext;
-

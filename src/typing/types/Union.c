@@ -84,6 +84,7 @@ bool UnionType_equal(void *vthis, void *vother) {
 	for (Type *it = this->elements; it < end; it++) {
 		if (!Type_equal(*it, *(oit++))) return false;
 	}
+	return true;
 }
 
 #undef this

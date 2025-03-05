@@ -13,6 +13,14 @@
 
 #include "tree/Node.c"
 
+#include "typing/types/Primitive.c"
+#include "typing/types/Pointer.c"
+#include "typing/types/Qualifier.c"
+#include "typing/types/Function.c"
+#include "typing/types/Union.c"
+#include "typing/types/Tuple.c"
+#include "typing/types/Array.c"
+
 #include "tree/nodes/Frame.c"
 #include "tree/nodes/Sequence.c"
 #include "tree/nodes/Get.c"
@@ -28,13 +36,6 @@
 #include "tree/nodes/Catch.c"
 #include "tree/nodes/Call.c"
 
-#include "typing/types/Primitive.c"
-#include "typing/types/Pointer.c"
-#include "typing/types/Qualifier.c"
-#include "typing/types/Function.c"
-#include "typing/types/Union.c"
-#include "typing/types/Tuple.c"
-#include "typing/types/Array.c"
 
 #include "typing/qualifiers/Primitive.c"
 #include "typing/qualifiers/Union.c"

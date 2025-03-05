@@ -13,3 +13,11 @@ void *SimStackFrame_getValue(SimStackFrame *this, Member *member) {
 	}
 	return this->data + *offset;
 }
+
+SimStackFrame *SimStackFrame_getRoot(SimStackFrame *this) {
+	SimStackFrame *next = this;
+	while (next->parent) {
+		next = next->parent;
+	}
+	return next;
+}
