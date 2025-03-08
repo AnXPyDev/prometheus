@@ -1,6 +1,6 @@
 typedef struct SimStackFrame {
 	struct SimStackFrame *parent;
-	void *origin;
-	HashMap *mmap;
+	MemberList *memberlist;
+	SimMemberListInfo *mlinfo;
 	char data[];
 } SimStackFrame;

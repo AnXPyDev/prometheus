@@ -14,7 +14,7 @@ Node CastNode_create(Type T, Node value, Allocator alc) {
 #define this ((CastNode*)vthis)
 
 void CastNode_print(void *vthis, OutStream os, StringView fmt) {
-	PrintFmt(os, "CastNode({}; {})", Type_repr(this->T), Node_repr(this->value));
+	PrintFmt(os, "Cast({}; {})", Type_repr(this->T), Node_repr(this->value));
 }
 
 Type CastNode_resultType(void *vthis, Allocator alc) {

@@ -1,26 +1,37 @@
 typedef struct {
-	Node argument;
-	Node function;
+	Function *function;
+	Size argcount;
+	Node arguments[];
 } CallNode;
 
 Node CallNode_upcast(CallNode*);
-Node CallNode_create(Node argument, Node function, Allocator alc) {
-	CallNode *this = Allocator_malloc(alc, sizeof(CallNode));
-	this->argument = argument;
+Node CallNode_create(Function *function, Array arguments, Allocator alc) {
+	CallNode *this = Allocator_malloc(alc, sizeof(CallNode) + sizeof(Node) * arguments.size);
 	this->function = function;
+	this->argcount = arguments.size;
+	memcpy(this->arguments, arguments.data, sizeof(Node) * this->argcount);
 	return CallNode_upcast(this);
 }
 
 #define this ((CallNode*)vthis)
 
 void CallNode_print(void *vthis, OutStream os, StringView fmt) {
-	PrintFmt(os, "CallNode({} => {})", Node_repr(this->argument), Node_repr(this->function));
+	OutStream_puts(os, "Call((");
+
+	Node *it = this->arguments;
+	Node *end = it + this->argcount;
+	for (; it < end - 1; it++) {
+		Printable_print(Node_repr(*it), os, BufferView_NULL);
+		OutStream_puts(os, ", ");
+	}
+	Printable_print(Node_repr(*it), os, BufferView_NULL);
+
+	PrintFmt(os, " => {%p})", repr(void*, this->function));
 }
 
 Type CallNode_resultType(void *vthis, Allocator alc) {
-	Type T = Node_resultType(this->function, alc);
+	Type T = this->function->type;
 	if (!Type_isFunctionType(T)) {
-		Type_destroy(T, alc);
 		return Type_NULL;
 	}
 
@@ -33,8 +44,11 @@ Type CallNode_resultType(void *vthis, Allocator alc) {
 }
 
 void CallNode_destroy(void *vthis, Allocator alc) {
-	Node_destroy(this->argument, alc);
-	Node_destroy(this->function, alc);
+	Node *it = this->arguments;
+	Node *end = it + this->argcount;
+	for (; it < end; it++) {
+		Node_destroy(*it, alc);
+	}
 	Allocator_free(alc, vthis);
 }
 

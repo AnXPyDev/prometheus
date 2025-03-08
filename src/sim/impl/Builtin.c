@@ -81,5 +81,35 @@ void Sim_builtin_equals_(Array args, SimContext *context, SimResult *out_result)
 	out_result->value = SimValue_INT_0; return;
 }
 
+void Sim_builtin_sum_ints_(Array args, SimContext *context, SimResult *out_result) {
+	if (args.size == 0) {
+		SimResult_throwMessage("Sim_builtin_sum: no args", NULL, context, out_result);
+		return;
+	}
+
+	Type T_int = PrimitiveType_upcast(PRIMITIVE_TYPE_INT);
+
+	int accum = 0;
+
+	SimValue *it = args.data;
+	SimValue *end = it + args.size;
+	for (; it < end; it++) {
+		if (SimValue_isNull(*it)) {
+			SimResult_throwMessage("Sim_builtin_sum_ints: arg is NULL", NULL, context, out_result);
+			return;
+		}
+		if (!Type_equal(T_int, it->type)) {
+			SimResult_throwMessage("Sim_builtin_sum_ints: wrong arg type", NULL, context, out_result);
+			return;
+		}
+
+		accum += *(int*)it->data;
+	}
+
+	out_result->value = SimValue_create(&accum, T_int, context->temp_alc);
+	return;
+}
+
 const Sim_builtin_fn_t Sim_builtin_printArgs = &Sim_builtin_printArgs_;
 const Sim_builtin_fn_t Sim_builtin_equals = &Sim_builtin_equals_;
+const Sim_builtin_fn_t Sim_builtin_sum_ints = &Sim_builtin_sum_ints_;

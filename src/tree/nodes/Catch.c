@@ -14,7 +14,7 @@ Node CatchNode_create(Type T, Node value, Allocator alc) {
 #define this ((CatchNode*)vthis)
 
 void CatchNode_print(void *vthis, OutStream os, StringView fmt) {
-	PrintFmt(os, "CatchNode({}; {})", Type_repr(this->T), Node_repr(this->value));
+	PrintFmt(os, "Catch({}; {})", Type_repr(this->T), Node_repr(this->value));
 }
 
 Type CatchNode_resultType(void *vthis, Allocator alc) {

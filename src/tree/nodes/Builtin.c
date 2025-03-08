@@ -1,14 +1,16 @@
 typedef struct {
 	const void *builtin;
+	Type result;
 	Size size;
 	Node nodes[];
 } BuiltinNode;
 
 Node BuiltinNode_upcast(BuiltinNode *this);
-Node BuiltinNode_create(const void *builtin, Array nodes, Allocator alc) {
+Node BuiltinNode_create(const void *builtin, Type result, Array nodes, Allocator alc) {
 	BuiltinNode *this = Allocator_malloc(alc, sizeof(BuiltinNode) + sizeof(Node) * nodes.size);
 	this->builtin = builtin;
 	this->size = nodes.size;
+	this->result = Type_copy(result, alc);
 	memcpy(this->nodes, nodes.data, sizeof(Node) * nodes.size);
 	return BuiltinNode_upcast(this);
 }
@@ -16,7 +18,7 @@ Node BuiltinNode_create(const void *builtin, Array nodes, Allocator alc) {
 #define this ((BuiltinNode*)vthis)
 
 void BuiltinNode_print(void *vthis, OutStream os, StringView fmt) {
-	PrintFmt(os, "BuiltinNode({}; ", repr(const void*, this->builtin));
+	PrintFmt(os, "Builtin({%p}; ", repr(const void*, this->builtin));
 	Node *end = this->nodes + this->size;
 	Node *it;
 	for (it = this->nodes; it < end - 1; it++) {
@@ -28,7 +30,7 @@ void BuiltinNode_print(void *vthis, OutStream os, StringView fmt) {
 
 Type BuiltinNode_resultType(void *vthis, Allocator alc) {
 	// TODO add logic to detect early return
-	return Node_resultType(this->nodes[this->size - 1], alc);
+	return Type_copy(this->result, alc);
 }
 
 void BuiltinNode_destroy(void *vthis, Allocator alc) {

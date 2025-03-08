@@ -4,6 +4,7 @@ typedef struct {
 } TupleType;
 
 Type TupleType_upcast(TupleType*);
+Type ConstTupleType_upcast(TupleType*);
 Type TupleType_create(Array elements, Allocator alc) {
 	TupleType *this = Allocator_malloc(alc, sizeof(TupleType) + sizeof(Type) * elements.size);
 	this->size = elements.size;
@@ -36,19 +37,12 @@ Printable TupleType_repr(void *vthis) {
 }
 
 void TupleType_info(void *vthis, TypeInfo *out_info) {
-	Size accum = 0;
-	out_info->abstract = false;
-	out_info->valid = true;
-
+	*out_info = TypeInfo_ZERO;
 	Type *end = this->elements + this->size;
 	for (Type *it = this->elements; it < end; it++) {
 		TypeInfo ti; Type_info(*it, &ti);
-		if (ti.abstract) out_info->abstract = true;
-		if (!ti.valid) out_info->valid = false;
-		accum += ti.size;
+		TypeInfo_add(out_info, &ti);
 	}
-
-	out_info->size = accum;
 }
 
 Type TupleType_copy(void *vthis, Allocator alc) {
@@ -74,16 +68,62 @@ bool TupleType_equal(void *vthis, void *vother) {
 	return true;
 }
 
+void ConstTupleType_destroy(void *vthis, Allocator alc) {}
+
+Type TupleType_constcast(void *vthis) {
+	return ConstTupleType_upcast(this);
+}
+
+Type TupleType_recast(void *vthis) {
+	return TupleType_upcast(this);
+}
+
+Type ConstTupleType_copy(void *vthis, Allocator alc) {
+	return ConstTupleType_upcast(this);
+}
+
 #undef this
 
 const IType IType_TupleType = {
-    .repr_ = &TupleType_repr,
-    .info = &TupleType_info,
-    .copy = &TupleType_copy,
-    .destroy = &TupleType_destroy,
-	 .equal = &TupleType_equal,
+   .repr_ = &TupleType_repr,
+   .info = &TupleType_info,
+   .copy = &TupleType_copy,
+   .destroy = &TupleType_destroy,
+	.equal = &TupleType_equal,
+	.constcast = &TupleType_constcast,
+	.recast = &TupleType_recast,
+};
+
+const IType IType_ConstTupleType = {
+	.repr_ = &TupleType_repr,
+	.info = &TupleType_info,
+	.copy = &ConstTupleType_copy,
+	.destroy = &ConstTupleType_destroy,
+	.equal = &TupleType_equal,
+	.constcast = &TupleType_constcast,
+	.recast = &TupleType_recast,
 };
 
 Type TupleType_upcast(TupleType *this) {
     return (Type) { .interface = &IType_TupleType, .object = this };
+}
+
+Type ConstTupleType_upcast(TupleType *this) {
+	return (Type) { .interface = &IType_ConstTupleType, .object = this };
+}
+
+Type MemberList_type(MemberList *this, Allocator alc) {
+	TupleType *tuple = Allocator_malloc(alc, sizeof(TupleType) + sizeof(Type) * this->members.size);
+	tuple->size = this->members.size;
+
+	Type *ep = tuple->elements;
+
+	Member **it = Vector_begin(&this->members);
+	Member **end = it + this->members.size;
+
+	for (; it < end; it++) {
+		*(ep++) = Type_copy((*it)->type, alc);
+	}
+
+	return TupleType_upcast(tuple);
 }

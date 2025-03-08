@@ -1,8 +1,8 @@
 #define this ((SequenceNode*)vthis)
 
 void SequenceNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_result) {
-	SimResult result = SimResult_NULL;
 	Node *end = this->nodes + this->size;
+	SimResult result = SimResult_NULL;
 	for (Node *it = this->nodes; it < end; it++) {
 		SimNode_evaluate(*it, context, &result);
 		if (result.control) {

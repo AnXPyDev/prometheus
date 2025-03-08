@@ -1,0 +1,3 @@
+#ifndef SIM_MEMORY_ALIGNMENT
+#define SIM_MEMORY_ALIGNMENT 8
+#endif 

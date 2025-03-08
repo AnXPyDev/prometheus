@@ -5,11 +5,9 @@ void FrameNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out
 	ArenaAllocator_create(&temp_alc_, context->state->alc, 2048);
 	Allocator temp_alc = ArenaAllocator_upcast(&temp_alc_);
 
-	SimStackFrame *stackframe = SimStackFrame_create((Array) {
-		.data = (void*)&(MemberList*) { &this->ml }, .size = 1
-	}, &context->state->mlCache, temp_alc);
+	SimMemberListInfo *mlinfo = SimCache_getMemberList(&context->state->cache, this->memberlist);
 
-	stackframe->parent = context->frame;
+	SimStackFrame *stackframe = SimStackFrame_create(context->frame, this->memberlist, mlinfo, temp_alc);
 
 	SimContext new_context = {
 		.frame = stackframe,
@@ -38,10 +36,13 @@ void FrameNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out
 	}
 
 	out_result->value = SimValue_copy(result.value, context->temp_alc);
-	return;
+	goto quit;
 
 	interrupt:;
 	SimResult_copy(&result, out_result, context);
+
+	quit:;
+	ArenaAllocator_destroy(&temp_alc_);
 }
 
 const ISimNode ISimNode_FrameNode = {

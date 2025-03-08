@@ -1,23 +1,14 @@
-SimStackFrame *SimStackFrame_create(Array memberlists, SimMemberListCache *cache, Allocator alc) {
-	SimMemberListDescriptor *desc = SimMemberListCache_ensure(cache, memberlists);
-	SimStackFrame *this = Allocator_calloc(alc, sizeof(SimStackFrame) + desc->size);
-	this->mmap = &desc->mmap;
+SimStackFrame *SimStackFrame_create(SimStackFrame *parent, MemberList *memberlist, SimMemberListInfo *mlinfo, Allocator alc) {
+	SimStackFrame *this = Allocator_malloc(alc, sizeof(SimStackFrame) + mlinfo->memsize);
+	this->mlinfo = mlinfo;
+	this->memberlist = memberlist;
 	return this;
 }
 
 void *SimStackFrame_getValue(SimStackFrame *this, Member *member) {
-	Size *offset = HashMap_get(this->mmap, (BufferView) { .size = sizeof(Member*), .data = (char*)&member });
-	if (!offset) {
-		if (this->parent) return SimStackFrame_getValue(this->parent, member);
-		return NULL;
+	if (member->owner == this->memberlist) {
+		return (void*)(this->data + this->mlinfo->offsets[member->index]);
 	}
-	return this->data + *offset;
-}
-
-SimStackFrame *SimStackFrame_getRoot(SimStackFrame *this) {
-	SimStackFrame *next = this;
-	while (next->parent) {
-		next = next->parent;
-	}
-	return next;
+	if (this->parent) return SimStackFrame_getValue(this->parent, member);
+	return NULL;
 }

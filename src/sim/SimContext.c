@@ -1,3 +1,4 @@
 void SimState_init(SimState *this) {
-	SimMemberListCache_create(&this->mlCache, this->temp_alc);
+	SimCache_create(&this->cache, this->temp_alc);
+	this->root_frame = NULL;
 }

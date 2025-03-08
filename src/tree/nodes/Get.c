@@ -12,7 +12,7 @@ Node GetNode_create(Member *member, Allocator alc) {
 #define this ((GetNode*)vthis)
 
 void GetNode_print(void *vthis, OutStream os, StringView fmt) {
-	PrintFmt(os, "GetNode({})", Member_repr(this->member));
+	PrintFmt(os, "Get({})", Member_repr(this->member));
 }
 
 Type GetNode_resultType(void *vthis, Allocator alc) {

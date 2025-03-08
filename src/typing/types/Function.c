@@ -3,14 +3,15 @@ typedef struct {
 	Type result;	
 } FunctionType;
 
-FunctionType *FunctionType_create(Type A, Type R, Allocator alc) {
+Type FunctionType_upcast(FunctionType *this);
+Type ConstFunctionType_upcast(FunctionType *this);
+
+Type FunctionType_create(Type A, Type R, Allocator alc) {
 	FunctionType *this = Allocator_malloc(alc, sizeof(FunctionType));
 	this->argument = Type_copy(A, alc);
 	this->result = Type_copy(R, alc);
-	return this;
+	return FunctionType_upcast(this);
 }
-
-Type FunctionType_upcast(FunctionType *this);
 
 #define this ((FunctionType*)vthis)
 
@@ -31,7 +32,19 @@ void FunctionType_info(void *vthis, TypeInfo *out_info) {
 }
 
 Type FunctionType_copy(void *vthis, Allocator alc) {
-	return FunctionType_upcast(FunctionType_create(this->argument, this->result, alc));
+	return FunctionType_create(this->argument, this->result, alc);
+}
+
+Type FunctionType_constcast(void *vthis) {
+	return ConstFunctionType_upcast(this);
+}
+
+Type FunctionType_recast(void *vthis) {
+	return FunctionType_upcast(this);
+}
+
+Type ConstFunctionType_copy(void *vthis, Allocator alc) {
+	return ConstFunctionType_upcast(this);
 }
 
 void FunctionType_destroy(void *vthis, Allocator alc) {
@@ -39,6 +52,8 @@ void FunctionType_destroy(void *vthis, Allocator alc) {
 	Type_destroy(this->result, alc);
 	Allocator_free(alc, vthis);
 }
+
+void ConstFunctionType_destroy(void *vthis, Allocator alc) {}
 
 bool FunctionType_equal(void *vthis, void *vother) {
 	FunctionType *other = vother;
@@ -61,9 +76,24 @@ const IType IType_FunctionType = {
 	.copy = &FunctionType_copy,
 	.destroy = &FunctionType_destroy,
 	.equal = &FunctionType_equal,
+	.constcast = &FunctionType_constcast
+};
+
+const IType IType_ConstFunctionType = {
+	.repr_ = &FunctionType_repr,
+	.info = &FunctionType_info,
+	.copy = &ConstFunctionType_copy,
+	.destroy = &ConstFunctionType_destroy,
+	.equal = &FunctionType_equal,
+	.constcast = &FunctionType_constcast,
+	.recast = &FunctionType_recast,
 };
 
 Type FunctionType_upcast(FunctionType *this) {
+	return (Type) { .interface = &IType_FunctionType, .object = this };
+}
+
+Type ConstFunctionType_upcast(FunctionType *this) {
 	return (Type) { .interface = &IType_FunctionType, .object = this };
 }
 

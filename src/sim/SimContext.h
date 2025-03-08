@@ -6,7 +6,8 @@ typedef struct {
 	OutStream os_err;
 	InStream is_in;
 
-	SimMemberListCache mlCache;
+	SimCache cache;
+	SimStackFrame *root_frame;
 } SimState;
 
 typedef struct {

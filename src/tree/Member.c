@@ -1,72 +1,69 @@
 typedef struct {
-    Type type;
-    Qualifier qualifier;
-    Identifier identifier;
-} Member;
-
-typedef struct MemberNode {
-    struct MemberNode *next;
-    Member member;
-} MemberNode;
-
-typedef struct {
-    Size size;
-    MemberNode *node;
-} MemberHead; 
-
-typedef struct {
-    Vector nodes;
+    Allocator alc;
     HashMap heads;
+    Vector members;
 } MemberList;
 
+typedef struct Member {
+    struct Member *next;
+    MemberList *owner;
+    Size index;
+    Identifier *identifier;
+    Qualifier qualifier;
+    Type type;
+} Member;
+
 void MemberList_init(MemberList *this, Allocator alc) {
-    Vector_create(&this->nodes, alc, sizeof(MemberNode));
-    HashMap_create(&this->heads, alc, sizeof(MemberHead));
+    this->alc = alc;
+    Vector_create(&this->members, sizeof(Member*));
+    HashMap_create(&this->heads, sizeof(Member*));
 }
 
-void MemberList_deinit(MemberList *this, Allocator alc) {
-    Vector_destroy(&this->nodes);
-    HashMap_destroy(&this->heads);
+MemberList *MemberList_create(Allocator alc) {
+    MemberList *this = Allocator_malloc(alc, sizeof(MemberList));
+    MemberList_init(this, alc);
+    return this;
 }
 
-void MemberList_add(MemberList *this, Member *member) {
-    MemberNode *node = Vector_push(&this->nodes);
-
-    MemberHead *head = HashMap_ensure(&this->heads, member->identifier.value);
-    node->next = head->node;
-    node->member = *member;
-    head->node = node;
-    head->size++;
+void MemberList_deinit(MemberList *this) {
+    Vector_destroy(&this->members, this->alc);
+    HashMap_destroy(&this->heads, this->alc);
 }
 
-MemberHead *MemberList_getHead(MemberList *this, Identifier *identifier) {
-    return HashMap_get(&this->heads, identifier->value);
+void MemberList_destroy(MemberList *this, Allocator alc) {
+    MemberList_deinit(this);
+    Allocator_free(alc, this);
 }
 
-Size MemberList_getSize(MemberList *this) {
-    return this->nodes.size;
+Member *MemberList_add(MemberList *this, Identifier *I, Qualifier Q, Type T) {
+    Member **head = HashMap_ensure(&this->heads, Identifier_view(I), this->alc);
+    Member *member = Allocator_malloc(this->alc, sizeof(Member));
+    member->next = *head;
+    member->owner = this;
+    member->index = this->members.size;
+    member->identifier = Identifier_copy(I, this->alc);
+    member->qualifier = Qualifier_constcast(Qualifier_copy(Q, this->alc));
+    member->type = Type_constcast(Type_copy(T, this->alc));
+
+    *head = member;
+
+    *(Member**)Vector_push(&this->members, this->alc) = member;
+    return member;
 }
 
-void MemberList_getMembers(MemberList *this, Member **out_members) {
-    MemberNode *end = Vector_end(&this->nodes);
-    for (MemberNode *it = Vector_begin(&this->nodes); it < end; it++) {
-        *(out_members++) = &it->member;
-    }
+Member *MemberList_matching(MemberList *this, Identifier *identifier) {
+    return HashMap_get(&this->heads, Identifier_view(identifier));
 }
 
-void MemberHead_getMembers(MemberHead *head, Member **out_members) {
-    MemberNode *node = head->node;
-    while (node) {
-        *(out_members++) = &node->member;
-        node = node->next;
-    }
+Array MemberList_members(MemberList *this) {
+    return Vector_array(&this->members);
 }
 
 #define this ((Member*)vthis)
 
 void Member_print(void *vthis, OutStream os, StringView fmt) {
     PrintFmt(os, "Member(\"{}\"; T: {}; Q: {})",
-        Identifier_repr(&this->identifier),
+        Identifier_repr(this->identifier),
         Type_repr(this->type),
         Qualifier_repr(this->qualifier)
     );

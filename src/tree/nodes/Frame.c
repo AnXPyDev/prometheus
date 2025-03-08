@@ -1,31 +1,31 @@
 typedef struct {
-    MemberList ml;
+    MemberList *memberlist;
     Node root;
 } FrameNode;
 
 Node FrameNode_upcast(FrameNode*);
-Node FrameNode_create(Allocator alc) {
+Node FrameNode_create(MemberList *memberlist, Node root, Allocator alc) {
     FrameNode *this = Allocator_malloc(alc, sizeof(FrameNode));
-    MemberList_init(&this->ml, alc);
-    this->root = Node_NULL;
+    this->root = root;
+    this->memberlist = memberlist;
     return FrameNode_upcast(this);
 }
 
 #define this ((FrameNode*)vthis)
 
 void FrameNode_print(void *vthis, OutStream os, StringView fmt) {
+    Array members = MemberList_members(this->memberlist);
+
     OutStream_puts(os, "Frame([");
 
-    {
-        MemberNode *end = Vector_end(&this->ml.nodes);
-        MemberNode *it = Vector_begin(&this->ml.nodes);
+    Member **it = members.data;
+    Member **end = it + members.size;
 
-        for (; it < end - 1; it++) {
-            Member_print(&it->member, os, BufferView_NULL);
-            OutStream_puts(os, ", ");
-        }
-        Member_print(&it->member, os, BufferView_NULL);
+    for (; it < end - 1; it++) {
+        Member_print(*it, os, BufferView_NULL);
+        OutStream_puts(os, ", ");
     }
+    Member_print(*it, os, BufferView_NULL);
 
     PrintFmt(os, "]; {})", Node_repr(this->root));
 }
@@ -43,7 +43,6 @@ Type FrameNode_resultType(void *vthis, Allocator alc) {
 }
 
 void FrameNode_destroy(void *vthis, Allocator alc) {
-    MemberList_deinit(&this->ml, alc);
     Node_destroy(this->root, alc);
 }
 

@@ -4,7 +4,8 @@
 #include "tree/Identifier.c"
 #include "tree/Member.c"
 
-#include "sim/SimMemberListCache.h"
+#include "sim/config.h"
+#include "sim/SimCache.h"
 #include "sim/SimStackFrame.h"
 #include "sim/SimContext.h"
 #include "sim/SimValue.h"
@@ -20,6 +21,8 @@
 #include "typing/types/Union.c"
 #include "typing/types/Tuple.c"
 #include "typing/types/Array.c"
+
+#include "tree/Function.c"
 
 #include "tree/nodes/Frame.c"
 #include "tree/nodes/Sequence.c"
@@ -41,7 +44,7 @@
 #include "typing/qualifiers/Union.c"
 
 
-#include "sim/SimMemberListCache.c"
+#include "sim/SimCache.c"
 #include "sim/SimStackFrame.c"
 #include "sim/SimContext.c"
 #include "sim/SimValue.c"

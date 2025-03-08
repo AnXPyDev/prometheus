@@ -50,7 +50,6 @@ Printable PrimitiveQualifier_repr(void *vthis) {
 const IQualifier IQualifier_PrimitiveQualifier = {
     .repr_ = &PrimitiveQualifier_repr,
     .copy = &PrimitiveQualifier_copy,
-    .move = &PrimitiveQualifier_move,
     .destroy = &PrimitiveQualifier_destroy
 };
 
