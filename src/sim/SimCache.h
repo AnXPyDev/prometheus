@@ -4,7 +4,12 @@ typedef struct {
 } SimCache;
 
 typedef struct {
+	Size type_size;
+	Size offset;
+} SimMemberInfo;
+
+typedef struct {
 	Size memsize;
 	Size size;
-	Size offsets[];
+	SimMemberInfo info[];
 } SimMemberListInfo;

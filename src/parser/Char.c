@@ -27,11 +27,14 @@ void g_Parser_setupCharLookupTable(void) {
 
 	rtbl['('] = TOKEN_TYPE_BRACE_OPEN;
 	rtbl[')'] = TOKEN_TYPE_BRACE_CLOSE;
-	rtbl['{'] = TOKEN_TYPE_BRACE_OPEN;
-	rtbl['}'] = TOKEN_TYPE_BRACE_CLOSE;
-	rtbl['['] = TOKEN_TYPE_BRACE_OPEN;
-	rtbl[']'] = TOKEN_TYPE_BRACE_CLOSE;
+	rtbl['{'] = TOKEN_TYPE_CBRACE_OPEN;
+	rtbl['}'] = TOKEN_TYPE_CBRACE_CLOSE;
+	rtbl['['] = TOKEN_TYPE_SBRACE_OPEN;
+	rtbl[']'] = TOKEN_TYPE_SBRACE_CLOSE;
 	rtbl[';'] = TOKEN_TYPE_END;
+	rtbl['.'] = TOKEN_TYPE_ACCESSOR;
+	rtbl[':'] = TOKEN_TYPE_ACCESSOR;
+	rtbl['/'] = TOKEN_TYPE_ACCESSOR;
 
 	// newline
 	tbl[10] = PARSER_CHAR_NEWLINE | PARSER_CHAR_WHITESPACE;
@@ -42,10 +45,10 @@ void g_Parser_setupCharLookupTable(void) {
 	tbl['\\'] = PARSER_CHAR_STRING_ESCAPE;
 
 	const char chars_restrict[] = {
-		'.', ',', ';', ':', '/', '(', ')', '{', '}', '[', ']', '@'
+		'.', ',', ';', ':', '/', '(', ')', '{', '}', '[', ']'
 	};
 	const char chars_identifier_special[] = {
-		'~', '!', '#', '$', '%', '^', '&', '*', '-', '_', '=', '+', '|', '\\', '?'
+		'~', '!', '#', '$', '%', '^', '&', '*', '-', '_', '=', '+', '|', '\\', '?', '@', '<', '>'
 	};
 
 	for (uint32_t i = 0; i < sizeof(chars_restrict); i++) {
@@ -53,11 +56,11 @@ void g_Parser_setupCharLookupTable(void) {
 	}
 	
 	for (uint32_t i = 0; i < sizeof(chars_identifier_special); i++) {
-		tbl[(int)chars_identifier_special[i]] = PARSER_CHAR_IDENTIFIER | PARSER_CHAR_IDENTIFIER;
+		tbl[(int)chars_identifier_special[i]] = PARSER_CHAR_IDENTIFIER | PARSER_CHAR_IDENTIFIER_BEGIN;
 	}
 
-	tbl['_'] = PARSER_CHAR_NUMERIC_DELIMITER;
-	tbl['.'] = PARSER_CHAR_NUMERIC_DECIMAL_POINT;
+	tbl['_'] |= PARSER_CHAR_NUMERIC_DELIMITER;
+	tbl['.'] |= PARSER_CHAR_NUMERIC_DECIMAL_POINT;
 
 	// letters
 	for (int i = 'A'; i <= 'Z'; i++) {

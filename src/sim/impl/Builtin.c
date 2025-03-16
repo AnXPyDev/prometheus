@@ -8,29 +8,59 @@ void BuiltinNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *o
 
 	Node *end = this->nodes + this->size;
 	SimValue *rp = values;
-
+	SimResult result;
 	for (Node *it = this->nodes; it < end; it++) {
-		SimResult result = SimResult_NULL; SimNode_evaluate(*it, context, &result);
+		result = SimResult_NULL; SimNode_evaluate(*it, context, &result);
 		if (result.control) {
-			SimResult_forward(&result, out_result);
+			switch (result.control) {
+				case SIM_CONTROL_SIGNAL_EMIT:
+					goto handle_emit;
+				default:;
+			}
+
+			if (0) handle_emit: {
+				if (result.control_target == vthis) {
+					out_result->value = result.value;
+					goto quit;
+				}
+			}
+
 			goto interrupt;
 		}
 		*(rp++) = result.value;
 	}
+	
+	if (0) interrupt: {
+		SimResult_forward(&result, out_result);
+		goto quit;
+	}
 
 	Sim_builtin_fn_t builtin = *(Sim_builtin_fn_t*)this->builtin;
 
-	builtin((Array) { .data = values, .size = this->size }, context, out_result);
+	result = SimResult_NULL;
 
-	if (out_result->control) {
-		out_result->control_origin = vthis;
-		goto interrupt;
+	builtin((Array) { .data = values, .size = this->size }, context, &result);
+
+	if (result.control) {
+		switch (result.control) {
+			case SIM_CONTROL_SIGNAL_EMIT:
+				goto handle_emit_2;
+			default:;
+		}
+
+		if (0) handle_emit_2: {
+			if (result.control_target == vthis) {
+				goto return_result;
+			}
+		}
+		SimResult_forward(&result, out_result);
 	}
 
-	interrupt: 
-	Allocator_free(context->temp_alc, values);
+	return_result:;
+	out_result->value = result.value;
 
-	return;
+	quit:;
+	Allocator_free(context->temp_alc, values);
 }
 
 const ISimNode ISimNode_BuiltinNode = {

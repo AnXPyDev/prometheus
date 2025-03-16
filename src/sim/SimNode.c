@@ -16,5 +16,6 @@ void g_SimNode_setup_extension(void) {
 }
 
 void SimNode_evaluate(Node this, SimContext *context, SimResult *result) {
+	if (Node_isNull(this)) return;
 	this.interface->simext.evaluate(this.object, context, result);
 }

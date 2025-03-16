@@ -93,3 +93,8 @@ Qualifier UnionQualifier_upcast(UnionQualifier *this) {
 Qualifier ConstUnionQualifier_upcast(UnionQualifier *this) {
 	return (Qualifier) { .interface = &IQualifier_ConstUnionQualifier, .object = this };
 }
+
+bool Qualifier_isUnionQualifier(Qualifier this) {
+	return this.interface == &IQualifier_UnionQualifier
+		|| this.interface == &IQualifier_ConstUnionQualifier;
+}

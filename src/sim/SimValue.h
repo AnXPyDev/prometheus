@@ -12,6 +12,11 @@ bool SimValue_isNull(SimValue this) {
 SimValue SimValue_create(const void *data, Type T, Allocator alc) {
 	Type type = Type_copy(T, alc);
 	Size ts = Type_size(type);
+
+	if (ts == 0) {
+		return SimValue_NULL;	
+	}
+
 	void *new_data = Allocator_malloc(alc, ts);
 	memcpy(new_data, data, ts);
 

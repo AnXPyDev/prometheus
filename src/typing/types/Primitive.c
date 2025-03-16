@@ -11,7 +11,11 @@ typedef enum {
     PRIMITIVE_TYPE_NODE,
     PRIMITIVE_TYPE_QUALIFIER,
     PRIMITIVE_TYPE_IDENTIFIER,
+    PRIMITIVE_TYPE_MEMBER,
     PRIMITIVE_TYPE_MESSAGE,
+
+    // parser
+    PRIMITIVE_TYPE_KEYWORD,
 
     // primitive
     PRIMITIVE_TYPE_INT,
@@ -28,7 +32,10 @@ const char *EPrimitiveType_REPR[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_NODE] = "PRIMITIVE_TYPE_NODE",
     [PRIMITIVE_TYPE_QUALIFIER] = "PRIMITIVE_TYPE_QUALIFIER",
     [PRIMITIVE_TYPE_IDENTIFIER] = "PRIMITIVE_TYPE_IDENTIFIER",
+    [PRIMITIVE_TYPE_MEMBER] = "PRIMITIVE_TYPE_MEMBER",
     [PRIMITIVE_TYPE_MESSAGE] = "PRIMITIVE_TYPE_MESSAGE",
+    
+    [PRIMITIVE_TYPE_KEYWORD] = "PRIMITIVE_TYPE_KEYWORD",
 
     [PRIMITIVE_TYPE_INT] = "PRIMITIVE_TYPE_INT",
 };
@@ -42,7 +49,10 @@ const char *EPrimitiveType_PRETTY[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_NODE] = "<node>",
     [PRIMITIVE_TYPE_QUALIFIER] = "<qualifier>",
     [PRIMITIVE_TYPE_IDENTIFIER] = "<identifier>",
+    [PRIMITIVE_TYPE_MEMBER] = "<member>",
     [PRIMITIVE_TYPE_MESSAGE] = "<message>",
+    
+    [PRIMITIVE_TYPE_KEYWORD] = "<keyword>",
 
     [PRIMITIVE_TYPE_INT] = "int",
 };
@@ -56,12 +66,17 @@ const TypeInfo EPrimitiveType_INFO[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_NODE] = { .valid = true, .abstract = true, .size = PRIMITIVE_TYPE_ABSTRACT_SIZE },
     [PRIMITIVE_TYPE_QUALIFIER] = { .valid = true, .abstract = true, .size = PRIMITIVE_TYPE_ABSTRACT_SIZE },
     [PRIMITIVE_TYPE_IDENTIFIER] = { .valid = true, .abstract = true, .size = PRIMITIVE_TYPE_ABSTRACT_SIZE },
+    [PRIMITIVE_TYPE_MEMBER] = { .valid = true, .abstract = true, .size = PRIMITIVE_TYPE_ABSTRACT_SIZE },
     [PRIMITIVE_TYPE_MESSAGE] = { .valid = true, .abstract = true, .size = PRIMITIVE_TYPE_ABSTRACT_SIZE },
+    
+    [PRIMITIVE_TYPE_KEYWORD] = { .valid = true, .abstract = true, .size = sizeof(int) },
 
     [PRIMITIVE_TYPE_INT] = { .valid = true, .abstract = false, .size = PRIMITIVE_TYPE_INT_SIZE },
 };
 
 Type PrimitiveType_upcast(EPrimitiveType);
+
+bool Type_isPrimitive(Type);
 
 #define this ((EPrimitiveType)(intptr_t)vthis)
 
@@ -92,6 +107,19 @@ void PrimitiveType_destroy(void *vthis, Allocator alc) {}
 
 bool PrimitiveType_equal(void *vthis, void *vother) { return vthis == vother; }
 
+bool PrimitiveType_match(void *vthis, Type other) {
+    if (this == PRIMITIVE_TYPE_ANY) {
+        return true;
+    }
+    if (Type_isPrimitive(other)) {
+        return PrimitiveType_equal(vthis, other.object);
+    }
+    if (Type_isQualifierType(other)) {
+        return PrimitiveType_match(vthis, Type_strip(other));
+    }
+    return false;
+}
+
 #undef this
 
 const IType IType_PrimitiveType = {
@@ -108,3 +136,18 @@ Type PrimitiveType_upcast(EPrimitiveType T) {
         .object = (void*)(intptr_t)T
     };
 }
+
+bool Type_isPrimitive(Type this) {
+    return this.interface == &IType_PrimitiveType;
+}
+
+bool Type_equalPrimitive(Type this, EPrimitiveType T) {
+    if (!Type_isPrimitive(this)) return false;
+    return (EPrimitiveType)(intptr_t)this.object == T;
+}
+
+#define TYPE_VOID PrimitiveType_upcast(PRIMITIVE_TYPE_VOID)
+#define TYPE_ANY PrimitiveType_upcast(PRIMITIVE_TYPE_ANY)
+#define TYPE_INT PrimitiveType_upcast(PRIMITIVE_TYPE_INT)
+
+#define TYPE_ISANY(T) Type_equalPrimitive(T, PRIMITIVE_TYPE_ANY)

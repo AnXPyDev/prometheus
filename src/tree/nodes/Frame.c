@@ -1,11 +1,12 @@
 typedef struct {
     MemberList *memberlist;
     Node root;
+    void *values[];
 } FrameNode;
 
 Node FrameNode_upcast(FrameNode*);
 Node FrameNode_create(MemberList *memberlist, Node root, Allocator alc) {
-    FrameNode *this = Allocator_malloc(alc, sizeof(FrameNode));
+    FrameNode *this = Allocator_calloc(alc, sizeof(FrameNode) + sizeof(void*) * memberlist->members.size);
     this->root = root;
     this->memberlist = memberlist;
     return FrameNode_upcast(this);

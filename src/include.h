@@ -38,6 +38,7 @@
 #include "tree/nodes/TakePointer.c"
 #include "tree/nodes/Catch.c"
 #include "tree/nodes/Call.c"
+#include "tree/nodes/Loop.c"
 
 
 #include "typing/qualifiers/Primitive.c"
@@ -65,3 +66,29 @@
 #include "sim/impl/TakePointer.c"
 #include "sim/impl/Catch.c"
 #include "sim/impl/Call.c"
+#include "sim/impl/Loop.c"
+
+#include "parser/Token.h"
+#include "parser/Char.c"
+#include "parser/Input.c"
+#include "parser/ParserInStream.c"
+#include "parser/ObjectSource.c"
+#include "parser/Token.c"
+#include "parser/Keyword.c"
+#include "parser/Tokenizer.c"
+#include "parser/ParserFrame.c"
+#include "parser/Util.c"
+#include "parser/ParserContext.h"
+#include "parser/ParserResult.h"
+#include "parser/ParserResult.c"
+
+#include "parser/impl/Node.h"
+#include "parser/impl/Number.c"
+#include "parser/impl/Control.c"
+#include "parser/impl/Sequence.c"
+#include "parser/impl/Frame.c"
+#include "parser/impl/Call.c"
+#include "parser/impl/Node.c"
+
+#include "parser/Builtin.c"
+#include "language/Builtin.c"

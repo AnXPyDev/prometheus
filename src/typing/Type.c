@@ -46,6 +46,7 @@ typedef struct {
     void (*destroy)(void *this, Allocator alc);
     struct Type (*copy)(void *this, Allocator alc);
     bool (*equal)(void *this, void *other);
+    bool (*match)(void *this, struct Type other);
     
     struct Type (*constcast)(void *this);
     struct Type (*recast)(void *this);
@@ -91,8 +92,8 @@ bool Type_equal(Type this, Type other) {
     bool this_null = Type_isNull(this), other_null = Type_isNull(other);
     if (this_null || other_null) return this_null && other_null;
 
-    if (this.interface->equal != other.interface->equal) return false;
     if (!this.interface->equal) return false;
+    if (this.interface->equal != other.interface->equal) return false;
     return this.interface->equal(this.object, other.object);
 }
 
@@ -107,3 +108,16 @@ Type Type_recast(Type this) {
     if (!this.interface->recast) return this;
     return this.interface->recast(this.object);
 }
+
+bool Type_match(Type this, Type other) {
+    if (Type_isNull(this)) return false;
+    if (!this.interface->match) return Type_equal(this, other);
+    return this.interface->match(this.object, other);
+}
+
+bool Type_isPrimitive(Type);
+bool Type_isPointerType(Type);
+bool Type_isQualifierType(Type);
+bool Type_isFunctionType(Type);
+
+Type Type_strip(Type);

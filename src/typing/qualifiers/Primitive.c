@@ -1,6 +1,7 @@
 typedef enum {
 	PRIMITIVE_QUALIFIER_NONE = 0,
 
+    // Type Qualifiers
     PRIMITIVE_QUALIFIER_CONSTANT,
 
 	PRIMITIVE_QUALIFIER__END
@@ -58,4 +59,8 @@ Qualifier PrimitiveQualifier_upcast(EPrimitiveQualifier T) {
         .interface = &IQualifier_PrimitiveQualifier,
         .object = (void*)(intptr_t)T
     };
+}
+
+bool Qualifier_isPrimitiveQualifier(Qualifier this) {
+    return this.interface == &IQualifier_PrimitiveQualifier;
 }

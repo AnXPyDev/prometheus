@@ -8,7 +8,7 @@ typedef struct Member {
     struct Member *next;
     MemberList *owner;
     Size index;
-    Identifier *identifier;
+    Identifier identifier;
     Qualifier qualifier;
     Type type;
 } Member;
@@ -35,8 +35,8 @@ void MemberList_destroy(MemberList *this, Allocator alc) {
     Allocator_free(alc, this);
 }
 
-Member *MemberList_add(MemberList *this, Identifier *I, Qualifier Q, Type T) {
-    Member **head = HashMap_ensure(&this->heads, Identifier_view(I), this->alc);
+Member *MemberList_add(MemberList *this, BufferView I, Qualifier Q, Type T) {
+    Member **head = HashMap_ensure(&this->heads, I, this->alc);
     Member *member = Allocator_malloc(this->alc, sizeof(Member));
     member->next = *head;
     member->owner = this;
@@ -51,8 +51,10 @@ Member *MemberList_add(MemberList *this, Identifier *I, Qualifier Q, Type T) {
     return member;
 }
 
-Member *MemberList_matching(MemberList *this, Identifier *identifier) {
-    return HashMap_get(&this->heads, Identifier_view(identifier));
+Member *MemberList_matching(MemberList *this, BufferView identifier) {
+    Member **mp = HashMap_get(&this->heads, identifier);
+    if (!mp) return NULL;
+    return *mp;
 }
 
 Array MemberList_members(MemberList *this) {
@@ -63,7 +65,7 @@ Array MemberList_members(MemberList *this) {
 
 void Member_print(void *vthis, OutStream os, StringView fmt) {
     PrintFmt(os, "Member(\"{}\"; T: {}; Q: {})",
-        Identifier_repr(this->identifier),
+        bufrepr(Identifier_view(this->identifier)),
         Type_repr(this->type),
         Qualifier_repr(this->qualifier)
     );

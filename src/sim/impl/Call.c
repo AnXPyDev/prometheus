@@ -5,7 +5,7 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 	
 	if (this->argcount != mlargs->members.size) {
 		SimResult_throwMessage("CallNode: wrong number of args", vthis, context, out_result);
-		goto interrupt_1;
+		return;
 	}
 
 	SimMemberListInfo *mlinfo = SimCache_getMemberList(
@@ -26,25 +26,37 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 		SimNode_evaluate(*it, context, &result);
 
 		if (result.control) {
+			switch (result.control) {
+				case SIM_CONTROL_SIGNAL_EMIT: goto handle_emit;
+				default:;
+			}
+
+			if (0) handle_emit: {
+				if (result.control_target == vthis) {
+					out_result->value = result.value;
+					goto quit_1;
+				}
+			}
+
 			SimResult_forward(&result, out_result);
-			goto interrupt_1;
+			goto quit_1;
 		}
 
 		if (SimValue_isNull(result.value)) {
 			SimResult_throwMessage("CallNode: arg evaluated to null", vthis, context, out_result);
-			goto interrupt_1;
+			goto quit_1;
 		}
 
 		if (!Type_equal(result.value.type, (*(mp++))->type)) {
 			SimResult_throwMessage("CallNode: arg type mismatch", vthis, context, out_result);
-			goto interrupt_1;
+			goto quit_1;
 		}
 
 		*(ap++) = result.value;
 	}
 
-	if (false) {
-		interrupt_1:;
+	if (0) quit_1: {
+		Allocator_free(context->temp_alc, args);
 		return;
 	}
 
@@ -57,10 +69,12 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 	);
 
 	{
+		SimMemberInfo *info = mlinfo->info;
 		SimValue *arg = args;
 		for (Size i = 0; i < this->argcount; i++) {
-			Size offset = mlinfo->offsets[i];
-			memcpy(stackframe->data + offset, (arg++)->data, Type_size(args[i].type));
+			memcpy(stackframe->data + info->offset, arg->data, info->type_size);
+			arg++;
+			info++;
 		}
 	}
 
@@ -74,32 +88,26 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 	SimNode_evaluate(this->function->node, &new_context, &result);
 	if (result.control) {
 		switch (result.control) {
-			case SIM_CONTROL_SIGNAL_BREAK:
-				goto handle_break;
-			case SIM_CONTROL_SIGNAL_RETURN:
-				goto handle_return;
-			case SIM_CONTROL_SIGNAL_THROW:
-			case SIM_CONTROL_SIGNAL_EXIT:
-			// TODO handle jump
+			case SIM_CONTROL_SIGNAL_EMIT:
+				goto handle_emit_2;
 			default:;
 				goto interrupt_2;
+			case SIM_CONTROL_SIGNAL_RETURN:;
 		}
 
-		handle_break:;
-		if (result.control_target && result.control_target != vthis) {
-			goto interrupt_2;
+		if (0) handle_emit_2: {
+			if (result.control_target != vthis) {
+				goto interrupt_2;
+			}
 		}
-		
-		handle_return:;
 	}
 
 	out_result->value = SimValue_copy(result.value, context->temp_alc);
-	goto quit;
 
-	interrupt_2:;
-	SimResult_copy(&result, out_result, context);
-
-	quit:;
+	if (0) interrupt_2: {
+		SimResult_copy(&result, out_result, context);
+	}
+	
 	ArenaAllocator_destroy(&temp_alc_);
 }
 

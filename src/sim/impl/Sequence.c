@@ -6,16 +6,25 @@ void SequenceNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *
 	for (Node *it = this->nodes; it < end; it++) {
 		SimNode_evaluate(*it, context, &result);
 		if (result.control) {
+			switch (result.control) {
+				case SIM_CONTROL_SIGNAL_EMIT:
+					goto handle_emit;
+				default:;
+			}
+
+			if (0) handle_emit: {
+				if (result.control_target == vthis) {
+					goto return_result;
+				}
+			}
+
 			SimResult_forward(&result, out_result);
-			goto interrupt;
+			return;
 		}
 	}
 
+	return_result:;
 	out_result->value = result.value;
-	return;
-
-	interrupt:;
-	return;
 }
 
 const ISimNode ISimNode_SequenceNode = {

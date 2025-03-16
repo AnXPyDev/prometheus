@@ -16,6 +16,11 @@ Type TupleType_create(Array elements, Allocator alc) {
 	return TupleType_upcast(this);
 }
 
+TupleType *TupleType_alloc(Size size, Allocator alc) {
+	TupleType *this = Allocator_malloc(alc, sizeof(TupleType) + sizeof(Type) * size);
+	return this;
+}
+
 #define this ((TupleType*)vthis)
 
 void Printable_TupleType_print(void *vthis, OutStream os, StringView fmt) {

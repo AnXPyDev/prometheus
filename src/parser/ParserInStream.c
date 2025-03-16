@@ -3,7 +3,8 @@ typedef struct {
 	InputPosition position;
 	Vector buffer;
 	uint32_t lastLineLength;
-	String name;
+	StringView name;
+	Allocator alc;
 } ParserInStream;
 
 void ParserInStream_create(
@@ -12,18 +13,18 @@ void ParserInStream_create(
 	InStream stream,
 	Allocator allocator
 ) {
-	this->name = String_new(allocator);
-	String_copy(&this->name, name);
+	this->alc = allocator;
 
-	this->buffer = Vector_new(allocator, sizeof(ParserChar));
+	Vector_create(&this->buffer, sizeof(ParserChar));
+
+	this->name = name;
 	this->stream = stream;
 	this->position = (InputPosition) { .line = 1, .character = 0 };
 	this->lastLineLength = UINT32_MAX;
 }
 
 void ParserInStream_destroy(ParserInStream *this) {
-	String_destroy(&this->name);
-	Vector_destroy(&this->buffer);
+	Vector_destroy(&this->buffer, this->alc);
 }
 
 ParserChar ParserInStream_getc(ParserInStream *this) {
@@ -34,7 +35,7 @@ ParserChar ParserInStream_getc(ParserInStream *this) {
 		c = InStream_getc(this->stream);
 	}
 
-	if (g_Parser_CharFlags[c] & PARSER_CHAR_NEWLINE) {
+	if (g_Parser_CharFlags[(int)ParserChar_toChar(c)] & PARSER_CHAR_NEWLINE) {
 		this->lastLineLength = this->position.character;
 		this->position.line++;
 		this->position.character = 0;
@@ -46,9 +47,9 @@ ParserChar ParserInStream_getc(ParserInStream *this) {
 }
 
 void ParserInStream_ungetc(ParserInStream *this, ParserChar c) {
-	*(ParserChar*)Vector_push(&this->buffer) = c;
+	*(ParserChar*)Vector_push(&this->buffer, this->alc) = c;
 	
-	if (g_Parser_CharFlags[c] & PARSER_CHAR_NEWLINE) {
+	if (g_Parser_CharFlags[(int)ParserChar_toChar(c)] & PARSER_CHAR_NEWLINE) {
 		this->position.line--;
 		this->position.character = this->lastLineLength;
 	}

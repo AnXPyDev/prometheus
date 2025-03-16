@@ -51,3 +51,11 @@ INode INode_ValueNode = {
 Node ValueNode_upcast(ValueNode *this) {
 	return (Node) { .interface = &INode_ValueNode, .object = this };
 }
+
+bool Node_isValueNode(Node this) {
+	return this.interface == &INode_ValueNode;
+}
+
+void *ValueNode_unwrap(ValueNode *this) {
+	return this->data;
+}

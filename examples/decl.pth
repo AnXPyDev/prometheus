@@ -1,0 +1,10 @@
+int x = 12;
+
+print(x);
+
+x = 32;
+
+print(x);
+print((x = 64));
+
+return x;

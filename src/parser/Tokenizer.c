@@ -1,27 +1,39 @@
-void Parser_tokenize(Parser *parser, ParserInStream *in, Vector *out_tokens) {
-	Vector buffer = Vector_new(parser->allocator, 1);
-	Vector_init(&buffer, 256);
+void Parser_tokenize(ParserInStream *in, Allocator tmp_alc, Vector *out_tokens, Allocator out_alc) {
+	Vector_create(out_tokens, sizeof(Token));
+	Vector_init(out_tokens, 16, out_alc);
+
+	Vector buffer;
+	Vector_create(&buffer, sizeof(char));
+	Vector_init(&buffer, 256, tmp_alc);
+
+	#define PUSH_BUFFER(c) *(char*)(Vector_push(&buffer, tmp_alc)) = c
+	#define PUSH_TOKEN(t) *(Token*)(Vector_push(out_tokens, out_alc)) = t
+	#define CHAR_FLAGS(c) g_Parser_CharFlags[(int)(c)]
+
 	Token token;
 
 	ParserChar c;
 
-
 	discard_token:;
 	dispatch: {
 		Vector_clear(&buffer);
-		token = (Token) {
-			.position = in->position,
-			.source = in,
-		};
 
 		c = ParserInStream_getc(in);
+
+		token = (Token) {
+			.src = (ObjectSource) {
+				.stream = in,
+				.pos = in->position
+			},
+		};
+
 		//fprintf(stderr, "char '%c' (%d)\n", (char)c, (int)c);
 		if (ParserInStream_end(in)) goto handle_eof;
 
-		*(char*)(Vector_push(&buffer)) = (char)c;
+		PUSH_BUFFER(ParserChar_toChar(c));
 
-		int flags = g_Parser_CharFlags[c];
-		if (flags & PARSER_CHAR_NEWLINE) goto tkn_implicit_end;
+		int flags = CHAR_FLAGS(ParserChar_toChar(c));
+		if (flags & PARSER_CHAR_NEWLINE) goto discard_token;
 		if (flags & PARSER_CHAR_WHITESPACE) goto discard_token;
 		if (flags & PARSER_CHAR_RESTRICT) goto tkn_restrict;
 		if (flags & PARSER_CHAR_STRING_DELIMITER) goto tkn_string;
@@ -45,11 +57,11 @@ void Parser_tokenize(Parser *parser, ParserInStream *in, Vector *out_tokens) {
 
 			//fprintf(stderr, "tkn_id '%c' (%d)\n", (char)c, (int)c);
 
-			int flags = g_Parser_CharFlags[c];
+			int flags = CHAR_FLAGS(ParserChar_toChar(c));
 
 
 			if (flags & PARSER_CHAR_IDENTIFIER) {
-				*(char*)Vector_push(&buffer) = ParserChar_toChar(c);
+				PUSH_BUFFER(ParserChar_toChar(c));
 				continue;
 			}
 
@@ -63,7 +75,7 @@ void Parser_tokenize(Parser *parser, ParserInStream *in, Vector *out_tokens) {
 	}
 
 	tkn_restrict: {
-		token.type = g_Parser_RestrictTypes[c];
+		token.type = g_Parser_RestrictTypes[(int)ParserChar_toChar(c)];
 		goto push_token;
 	}
 
@@ -83,7 +95,7 @@ void Parser_tokenize(Parser *parser, ParserInStream *in, Vector *out_tokens) {
 			
 			if (escape) goto tkn_string_push;
 
-			int flags = g_Parser_CharFlags[c];
+			int flags = CHAR_FLAGS(ParserChar_toChar(c));
 			if (flags & PARSER_CHAR_STRING_ESCAPE) {
 				escape = true;
 				continue;
@@ -93,7 +105,8 @@ void Parser_tokenize(Parser *parser, ParserInStream *in, Vector *out_tokens) {
 
 			tkn_string_push:;
 			escape = false;
-			*(ParserChar*)Vector_push(&buffer) = c;
+
+			PUSH_BUFFER(ParserChar_toChar(c));
 		}
 
 		goto push_token;
@@ -109,10 +122,10 @@ void Parser_tokenize(Parser *parser, ParserInStream *in, Vector *out_tokens) {
 			c = ParserInStream_getc(in);
 			if (ParserInStream_end(in)) break;
 
-			int flags = g_Parser_CharFlags[c];
+			int flags = CHAR_FLAGS(ParserChar_toChar(c));
 
 			if (flags & (PARSER_CHAR_NUMERIC | PARSER_CHAR_NUMERIC_DECIMAL_POINT)) {
-				*(ParserChar*)Vector_push(&buffer) = c;
+				PUSH_BUFFER(ParserChar_toChar(c));
 				continue;
 			}
 
@@ -127,16 +140,22 @@ void Parser_tokenize(Parser *parser, ParserInStream *in, Vector *out_tokens) {
 
 	push_token: {
 		if (buffer.size > 0) {
-			token.str = Buffer_view(Buffer_copy(Vector_bufferView(&buffer), parser->allocator));
+			token.str = Buffer_view(Buffer_copy(Vector_bufferView(&buffer), out_alc));
 		}
-		*(Token*)Vector_push(out_tokens) = token;
+		PUSH_TOKEN(token);
 		goto dispatch;
 	}
 
 	handle_eof: {
 		token.type = TOKEN_TYPE_INPUT_END;
-		*(Token*)Vector_push(out_tokens) = token;
+		PUSH_TOKEN(token);
 	}
 
+	Vector_destroy(&buffer, tmp_alc);
+
 	return;
+
+	#undef PUSH_BUFFER
+	#undef PUSH_TOKEN
+	#undef CHAR_FLAGS
 }

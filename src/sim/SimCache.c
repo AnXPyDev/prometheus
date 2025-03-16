@@ -8,17 +8,21 @@ void SimCache_create(SimCache *this, Allocator alc) {
 SimMemberListInfo *SimMemberListInfo_create(MemberList *memberlist, Allocator alc) {
 	Array members = MemberList_members(memberlist);
 
-	SimMemberListInfo *this = Allocator_malloc(alc, sizeof(SimMemberListInfo) + sizeof(Size) * members.size);
+	SimMemberListInfo *this = Allocator_malloc(alc, sizeof(SimMemberListInfo) + sizeof(SimMemberInfo) * members.size);
 	this->size = members.size;
 	
 	Member **it = members.data;
 	Member **end = it + members.size;
 
-	Size *op = this->offsets;
+	SimMemberInfo *ip = this->info;
 	Size offset = 0;
 
 	for (; it < end; it++) {
-		*(op++) = offset;
+		Size ts = Type_size((*it)->type);
+		*(ip++) = (SimMemberInfo) {
+			.type_size = ts,
+			.offset = offset
+		};
 		offset += MEMALIGN(Type_size((*it)->type));
 	}
 
@@ -43,5 +47,5 @@ SimMemberListInfo *SimCache_getMemberList(SimCache *this, MemberList *memberlist
 }
 
 Size SimMemberList_getMemberOffset(SimMemberListInfo *this, Member *member) {
-	return this->offsets[member->index];
+	return this->info[member->index].offset;
 }

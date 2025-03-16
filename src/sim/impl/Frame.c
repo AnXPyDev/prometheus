@@ -9,6 +9,18 @@ void FrameNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out
 
 	SimStackFrame *stackframe = SimStackFrame_create(context->frame, this->memberlist, mlinfo, temp_alc);
 
+	/* copy defaults */ {
+		SimMemberInfo *info = mlinfo->info;
+		void **it = this->values;
+		void **end = it + this->memberlist->members.size;
+		for (; it < end; it++) {
+			if (*it) {
+				memcpy(stackframe->data + info->offset, *it, info->type_size);
+			}
+			info++;
+		}
+	}
+	
 	SimContext new_context = {
 		.frame = stackframe,
 		.state = context->state,
@@ -19,27 +31,24 @@ void FrameNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out
 	SimNode_evaluate(this->root, &new_context, &result);
 	if (result.control) {
 		switch (result.control) {
-			case SIM_CONTROL_SIGNAL_BREAK:
-				goto handle_break;
-			case SIM_CONTROL_SIGNAL_RETURN:
-			case SIM_CONTROL_SIGNAL_THROW:
-			case SIM_CONTROL_SIGNAL_EXIT:
-			// TODO handle jump
+			case SIM_CONTROL_SIGNAL_EMIT:
+				goto handle_emit;
 			default:;
-				goto interrupt;
 		}
 
-		handle_break:;
-		if (result.control_target && result.control_target != vthis) {
-			goto interrupt;
+
+		if (0) handle_emit: {
+			if (!result.control_target || result.control_target == vthis) {
+				goto return_result;	
+			}
 		}
+
+		SimResult_copy(&result, out_result, context);
+		goto quit;
 	}
 
+	return_result:;
 	out_result->value = SimValue_copy(result.value, context->temp_alc);
-	goto quit;
-
-	interrupt:;
-	SimResult_copy(&result, out_result, context);
 
 	quit:;
 	ArenaAllocator_destroy(&temp_alc_);
