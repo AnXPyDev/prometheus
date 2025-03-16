@@ -1,10 +1,9 @@
-int x = 12;
+int x = -5;
 
-print(x);
+loop {
+	print(x);
 
-x = 32;
+	if x 0 else break 1;
 
-print(x);
-print((x = 64));
-
-return x;
+	x = add(x, neg(1));
+}

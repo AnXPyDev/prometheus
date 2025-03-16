@@ -32,6 +32,7 @@ void g_Parser_setupCharLookupTable(void) {
 	rtbl['['] = TOKEN_TYPE_SBRACE_OPEN;
 	rtbl[']'] = TOKEN_TYPE_SBRACE_CLOSE;
 	rtbl[';'] = TOKEN_TYPE_END;
+	rtbl[','] = TOKEN_TYPE_LIST_DELIMITER;
 	rtbl['.'] = TOKEN_TYPE_ACCESSOR;
 	rtbl[':'] = TOKEN_TYPE_ACCESSOR;
 	rtbl['/'] = TOKEN_TYPE_ACCESSOR;

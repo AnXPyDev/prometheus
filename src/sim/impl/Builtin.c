@@ -140,6 +140,23 @@ void Sim_builtin_sum_ints_(Array args, SimContext *context, SimResult *out_resul
 	return;
 }
 
+void Sim_builtin_neg_int_(Array args, SimContext *context, SimResult *out_result) {
+	if (args.size != 1) {
+		SimResult_throwMessage("Sim_builtin_neg: only one arg allowed", NULL, context, out_result);
+		return;
+	}
+
+	Type T_int = PrimitiveType_upcast(PRIMITIVE_TYPE_INT);
+
+	SimValue *val = args.data;
+
+	int res = 0 - *(int*)val->data;
+
+	out_result->value = SimValue_create(&res, T_int, context->temp_alc);
+	return;
+}
+
 const Sim_builtin_fn_t Sim_builtin_printArgs = &Sim_builtin_printArgs_;
 const Sim_builtin_fn_t Sim_builtin_equals = &Sim_builtin_equals_;
 const Sim_builtin_fn_t Sim_builtin_sum_ints = &Sim_builtin_sum_ints_;
+const Sim_builtin_fn_t Sim_builtin_neg_int = &Sim_builtin_neg_int_;

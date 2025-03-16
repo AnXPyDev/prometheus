@@ -16,3 +16,4 @@ extern const ISimNode ISimNode_ValueNode;
 extern const ISimNode ISimNode_CatchNode;
 extern const ISimNode ISimNode_ControlNode;
 extern const ISimNode ISimNode_CallNode;
+extern const ISimNode ISimNode_LoopNode;

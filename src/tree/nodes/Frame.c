@@ -19,6 +19,8 @@ void FrameNode_print(void *vthis, OutStream os, StringView fmt) {
 
     OutStream_puts(os, "Frame([");
 
+    if (members.size == 0) goto skip_members;
+
     Member **it = members.data;
     Member **end = it + members.size;
 
@@ -27,6 +29,8 @@ void FrameNode_print(void *vthis, OutStream os, StringView fmt) {
         OutStream_puts(os, ", ");
     }
     Member_print(*it, os, BufferView_NULL);
+
+    skip_members:;
 
     PrintFmt(os, "]; {})", Node_repr(this->root));
 }

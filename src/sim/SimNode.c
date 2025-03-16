@@ -13,6 +13,7 @@ void g_SimNode_setup_extension(void) {
 	INode_GetPointerNode.simext = ISimNode_GetPointerNode;
 	INode_SetPointerNode.simext = ISimNode_SetPointerNode;
 	INode_TakePointerNode.simext = ISimNode_TakePointerNode;
+	INode_LoopNode.simext = ISimNode_LoopNode;
 }
 
 void SimNode_evaluate(Node this, SimContext *context, SimResult *result) {

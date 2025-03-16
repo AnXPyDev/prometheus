@@ -76,6 +76,11 @@ typedef struct {
 void ParseTree_dispatch(ParseTree*, Token*, ParseTreeNode*);
 
 void ParseTree_branch_number(ParseTree *this, Token *token, ParseTreeNode *node) {
+	switch (node->type) {
+		default:;
+			return;
+		case NODE(NONE):;
+	}
 	ParseTreeOption *opt = Vector_push(&this->options, this->options_alc);
 	*opt = (ParseTreeOption) {
 		.next_token = token + 1,
@@ -453,6 +458,24 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 		root_node.u.value = node;
 	}
 
+	if (0) sub_condition: {
+		ParserResult result = ParserResult_NULL;
+		Parser_parseCondition(ts, ctx, &result);
+		if (Parser_checkfwd(&result, out)) return;
+
+		root_node.type = NODE(VALUE);
+		root_node.u.value = result.node;
+	}
+	
+	if (0) sub_loop: {
+		ParserResult result = ParserResult_NULL;
+		Parser_parseLoop(ts, ctx, &result);
+		if (Parser_checkfwd(&result, out)) return;
+
+		root_node.type = NODE(VALUE);
+		root_node.u.value = result.node;
+	}
+
 	while (true) {
 		switch (root_node.type) {
 			case NODE(SUB_CONTROL): goto sub_control;
@@ -462,6 +485,8 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 			case NODE(SUB_FRAME): goto sub_frame;
 			case NODE(SUB_CALL): goto sub_call;
 			case NODE(SUB_SET): goto sub_set;
+			case NODE(SUB_CONDITION): goto sub_condition;
+			case NODE(SUB_LOOP): goto sub_loop;
 			default:;
 		}
 
@@ -513,8 +538,7 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 		}
 		
 		if (!opt) {
-			Parser_throw(ctx, &token->src, PARSER_RESULT_PANIC, "Cannot parse expression", out);
-			return;
+			break;
 		}
 
 		TokenStream_set(ts, opt->next_token);
@@ -531,22 +555,23 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 		case NODE(MEMBER):
 			out->node = GetNode_create(root_node.u.member, ctx->state->program_alc);
 			break;
+		case NODE(NONE):
 		default:
 			goto err_incomplete;
 	}
 
 	if (0) err_incomplete: {
 		if (token->type == TOKEN_TYPE_INPUT_END) {
-			Parser_throw(ctx, &token->src, PARSER_RESULT_ERROR, "Unexpected EOF", out);
+			Parser_throw(ctx, &token->src, PARSER_RESULT_PANIC, "Unexpected EOF", out);
 			return;
 		} else {
-			Parser_throw(ctx, &token->src, PARSER_RESULT_WARNING, "Incomplete expression", out);
+			Parser_throw(ctx, &token->src, PARSER_RESULT_PANIC, "Incomplete expression", out);
 			return;
 		}
 	}
 
 	if (0) err_explicit_end: {
-		Parser_throw(ctx, &token->src, PARSER_RESULT_ERROR, "Explicit end not allowed here", out);
+		Parser_throw(ctx, &token->src, PARSER_RESULT_PANIC, "Explicit end not allowed here", out);
 		return;
 	}
 }

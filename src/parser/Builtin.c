@@ -26,6 +26,7 @@ void Parser_setupBuiltins(ParserFrame *frame, Allocator alc) {
 	Parser_setupKeyword(frame, "@", PARSER_KEYWORD_PTR, alc);
 
 	Parser_setupKeyword(frame, "if", PARSER_KEYWORD_IF, alc);
+	Parser_setupKeyword(frame, "else", PARSER_KEYWORD_ELSE, alc);
 	Parser_setupKeyword(frame, "loop", PARSER_KEYWORD_LOOP, alc);
 
 	Parser_setupKeyword(frame, "print", PARSER_KEYWORD_PRINT, alc);

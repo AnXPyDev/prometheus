@@ -88,6 +88,8 @@
 #include "parser/impl/Sequence.c"
 #include "parser/impl/Frame.c"
 #include "parser/impl/Call.c"
+#include "parser/impl/Condition.c"
+#include "parser/impl/Loop.c"
 #include "parser/impl/Node.c"
 
 #include "parser/Builtin.c"
