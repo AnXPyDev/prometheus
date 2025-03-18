@@ -73,7 +73,8 @@ void Type_info(Type this, TypeInfo *info) {
 
 Size Type_size(Type this)  {
     if (Type_isNull(this)) return 0;
-    if (this.interface->size) { return this.interface->size(this.object); }
+    if (this.interface->size) return this.interface->size(this.object);
+
     TypeInfo ti; Type_info(this, &ti);
     return ti.size;
 }
@@ -119,5 +120,8 @@ bool Type_isPrimitive(Type);
 bool Type_isPointerType(Type);
 bool Type_isQualifierType(Type);
 bool Type_isFunctionType(Type);
+bool Type_isSpanType(Type);
+bool Type_isArrayType(Type);
+bool Type_isTupleType(Type);
 
 Type Type_strip(Type);

@@ -48,6 +48,10 @@ bool QualifierType_equal(void *vthis, void *vother) {
     return Type_equal(this->T, other->T);
 }
 
+bool QualifierType_match(void *vthis, Type other) {
+    return Type_match(this->T, other);
+}
+
 #undef this
 
 const IType IType_QualifierType = {
@@ -55,7 +59,8 @@ const IType IType_QualifierType = {
     .info = &QualifierType_info,
     .copy = &QualifierType_copy,
     .destroy = &QualifierType_destroy,
-    .equal = &QualifierType_equal
+    .equal = &QualifierType_equal,
+    .match = &QualifierType_match
 };
 
 Type QualifierType_upcast(QualifierType *this) {

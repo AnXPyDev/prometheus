@@ -4,6 +4,13 @@ typedef enum {
     // Type Qualifiers
     PRIMITIVE_QUALIFIER_CONSTANT,
 
+    // Member qualifiers
+    PRIMITIVE_QUALIFIER_OPERATOR_UNARY,
+    PRIMITIVE_QUALIFIER_OPERATOR_BINARY,
+    PRIMITIVE_QUALIFIER_METHOD,
+    PRIMITIVE_QUALIFIER_PURE,
+    PRIMTIIVE_QUALIFIER_PARSETIME,
+
 	PRIMITIVE_QUALIFIER__END
 } EPrimitiveQualifier;
 
@@ -33,6 +40,18 @@ Qualifier PrimitiveQualifier_move(void *vthis, Allocator alc, Allocator owner) {
     return PrimitiveQualifier_upcast(this);
 }
 
+bool UnionQualifier_match_reverse(void*, Qualifier);
+
+bool PrimitiveQualifier_match(void *vthis, Qualifier other) {
+	if (Qualifier_isUnionQualifier(other)) {
+        return UnionQualifier_match_reverse(other.object, PrimitiveQualifier_upcast(this));
+	}
+
+    if (Qualifier_isPrimitive(other)) return vthis == other.object;
+
+    return false;
+}
+
 void PrimitiveQualifier_destroy(void *vthis, Allocator alc) {}
 
 #undef this
@@ -51,7 +70,8 @@ Printable PrimitiveQualifier_repr(void *vthis) {
 const IQualifier IQualifier_PrimitiveQualifier = {
     .repr_ = &PrimitiveQualifier_repr,
     .copy = &PrimitiveQualifier_copy,
-    .destroy = &PrimitiveQualifier_destroy
+    .destroy = &PrimitiveQualifier_destroy,
+    .match = &PrimitiveQualifier_match,
 };
 
 Qualifier PrimitiveQualifier_upcast(EPrimitiveQualifier T) {
@@ -61,6 +81,6 @@ Qualifier PrimitiveQualifier_upcast(EPrimitiveQualifier T) {
     };
 }
 
-bool Qualifier_isPrimitiveQualifier(Qualifier this) {
+bool Qualifier_isPrimitive(Qualifier this) {
     return this.interface == &IQualifier_PrimitiveQualifier;
 }

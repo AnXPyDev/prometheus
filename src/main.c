@@ -13,8 +13,10 @@ Node ValueNode_createInt(int i, Allocator alc) {
 int main(int argc, char **argv) {
 	g_initStdStreams();
 	g_SimNode_setup_extension();
+	g_ParserNode_setup_extension();
 	g_SimValue_setup_consts();
 	g_Parser_setupCharLookupTable();
+	g_Typing_setupTypes(g_standardAllocator);
 
 	ArenaAllocator arena;
 	ArenaAllocator_create(&arena, g_standardAllocator, 2048);
@@ -60,22 +62,22 @@ int main(int argc, char **argv) {
 	
 	fprintf(stdout, "\n\n");
 	#endif
-
-	ParserState parser = {
-		.logstream = g_os_stderr,
-		.program_alc = alc
-	};
-
-
+	
 	ParserFrame pframe;
 	ParserFrame_create(&pframe, NULL, MemberList_create(alc), alc);
 
 	Parser_setupBuiltins(&pframe, alc);
 	Language_setupBuiltins(&pframe, alc);
 
+	ParserState parser = {
+		.logstream = g_os_stderr,
+		.program_alc = alc,
+		.root_frame = &pframe
+	};
+
 	ParserContext parser_ctx = {
 		.state = &parser,
-		.frame = &pframe,
+		.frame = parser.root_frame,
 		.tmp_alc = alc
 	};
 
@@ -83,14 +85,16 @@ int main(int argc, char **argv) {
 
 	ParserResult presult = ParserResult_NULL;
 
-	Parser_parseSequence(&ts, &parser_ctx, &presult);
+	Parser_parseFrame(&ts, &parser_ctx, &presult);
 
 	if (Parser_check(&presult)) {
 		fprintf(stderr, "Presult: %d\n", presult.code);
 		goto quit;
 	}
 
+	#ifdef BUILD_DEBUG
 	PrintFmt(g_os_stdout, "root: {}\n", Node_repr(presult.node));
+	#endif
 
 	SimState simstate = {
 		.alc = g_standardAllocator,
@@ -108,7 +112,7 @@ int main(int argc, char **argv) {
 		.temp_alc = alc
 	};
 
-	context.frame = SimStackFrame_create(NULL, pframe.memberlist, SimCache_getMemberList(&simstate.cache, pframe.memberlist), simstate.alc);
+	context.frame = SimStackFrame_create(NULL, pframe.memberlist, SimCache_getMemberList(&simstate.cache, pframe.memberlist), simstate.alc, simstate.alc);
 
 	SimResult result = SimResult_NULL;
 	SimNode_evaluate(presult.node, &context, &result);

@@ -18,12 +18,16 @@ SimMemberListInfo *SimMemberListInfo_create(MemberList *memberlist, Allocator al
 	Size offset = 0;
 
 	for (; it < end; it++) {
-		Size ts = Type_size((*it)->type);
+		Member *member = *it;
+		Size ts = Type_size(member->type);
+		bool isAny = Type_equalPrimitive(Type_strip(member->type), PRIMITIVE_TYPE_ANY);
+
 		*(ip++) = (SimMemberInfo) {
 			.type_size = ts,
-			.offset = offset
+			.offset = offset,
+			.flags = (isAny ? MEMBERINFO_FLAG_ANY : 0)
 		};
-		offset += MEMALIGN(Type_size((*it)->type));
+		offset += MEMALIGN(ts);
 	}
 
 	this->memsize = offset;

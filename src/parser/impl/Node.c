@@ -1,6 +1,7 @@
 typedef struct {
 	ParserContext *ctx;
 
+	int flags;
 	Vector options;
 	Allocator options_alc;
 } ParseTree;
@@ -14,10 +15,12 @@ typedef enum {
 	NODE(MEMBER),
 	NODE(FUNCTION),
 	NODE(VALUE),
+	NODE(DECLARATION),
 
 	NODE(SUB_DECLARATION),
+	NODE(SUB_FUN_DECLARATION),
 	NODE(SUB_NUMBER),
-	NODE(SUB_PTRTYPE),
+	NODE(SUB_STRING),
 	NODE(SUB_TUPLE),
 	NODE(SUB_BRACED),
 	NODE(SUB_FRAME),
@@ -26,7 +29,6 @@ typedef enum {
 	NODE(SUB_CATCH),
 	NODE(SUB_CALL),
 	NODE(SUB_LOOP),
-	NODE(SUB_PRINT),
 	NODE(SUB_SET),
 	NODE(_END)
 } EParseTreeNode;
@@ -38,10 +40,11 @@ const char *EParseTreeNode_REPR[NODE(_END)] = {
 	[NODE(MEMBER)] = "MEMBER",
 	[NODE(FUNCTION)] = "FUNCTION",
 	[NODE(VALUE)] = "VALUE",
+	[NODE(DECLARATION)] = "DECLARATION",
 
 	[NODE(SUB_DECLARATION)] = "SUB_DECLARATION",
 	[NODE(SUB_NUMBER)] = "SUB_NUMBER",
-	[NODE(SUB_PTRTYPE)] = "SUB_PTRTYPE",
+	[NODE(SUB_STRING)] = "SUB_STRING",
 	[NODE(SUB_TUPLE)] = "SUB_TUPLE",
 	[NODE(SUB_BRACED)] = "SUB_BRACED",
 	[NODE(SUB_FRAME)] = "SUB_FRAME",
@@ -50,7 +53,6 @@ const char *EParseTreeNode_REPR[NODE(_END)] = {
 	[NODE(SUB_CATCH)] = "SUB_CATCH",
 	[NODE(SUB_CALL)] = "SUB_CALL",
 	[NODE(SUB_LOOP)] = "SUB_LOOP",
-	[NODE(SUB_PRINT)] = "SUB_PRINT",
 	[NODE(SUB_SET)] = "SUB_SET",
 };
 
@@ -88,6 +90,19 @@ void ParseTree_branch_number(ParseTree *this, Token *token, ParseTreeNode *node)
 	};
 }
 
+void ParseTree_branch_string(ParseTree *this, Token *token, ParseTreeNode *node) {
+	switch (node->type) {
+		default:;
+			return;
+		case NODE(NONE):;
+	}
+	ParseTreeOption *opt = Vector_push(&this->options, this->options_alc);
+	*opt = (ParseTreeOption) {
+		.next_token = token + 1,
+		.node = { .type = NODE(SUB_STRING), .u.str = token->str }
+	};
+}
+
 void ParseTree_branch_type(ParseTree *this, Token *token, Type T, ParseTreeNode *node) {
 	switch (node->type) {
 		default:	return;
@@ -97,6 +112,12 @@ void ParseTree_branch_type(ParseTree *this, Token *token, Type T, ParseTreeNode 
 	ParseTreeNode nnode = {
 		.type = NODE(TYPE),
 		.u.type = T
+	};
+	
+	ParseTreeOption *opt = Vector_push(&this->options, this->options_alc);
+	*opt = (ParseTreeOption) {
+		.next_token = token + 1,
+		.node = nnode
 	};
 
 	ParseTree_dispatch(this, token + 1, &nnode);
@@ -109,14 +130,18 @@ void ParseTree_branch_member(ParseTree *this, Token *token, Member *member, Pars
 		case NODE(NONE):;
 	}
 
+	ParseTreeNode nnode = {
+		.type = NODE(MEMBER),
+		.u.member = member
+	};
+
 	ParseTreeOption *opt = Vector_push(&this->options, this->options_alc);
 	*opt = (ParseTreeOption) {
 		.next_token = token + 1,
-		.node = {
-			.type = NODE(MEMBER),
-			.u.member = member
-		}
+		.node = nnode
 	};
+
+	ParseTree_dispatch(this, token + 1, &nnode);
 }
 
 void ParseTree_branch_keyword(ParseTree *this, Token *token, EParserKeyword kw, ParseTreeNode *node) {
@@ -204,7 +229,7 @@ void ParseTree_dispatch_member(ParseTree *this, Token *token, MemberValuePair mv
 
 	Type MT = mvp.member->type;
 	if (Type_equalPrimitive(MT, PRIMITIVE_TYPE_TYPE)) {
-		Type T = **(Type**)mvp.value;
+		Type T = *(Type*)mvp.value;
 		ParseTree_branch_type(this, token, T, node);
 	}
 
@@ -225,16 +250,17 @@ void ParseTree_branch_identifier(ParseTree *this, Token *token, BufferView id, P
 	}
 
 	if (0) handle_declaration: {
+		ParseTreeNode nnode = {
+			.type = NODE(DECLARATION),
+			.u.decl = { .type = node->u.type, .id = id }
+		};
+
+		ParseTree_dispatch(this, token + 1, &nnode);
+
 		ParseTreeOption *opt = Vector_push(&this->options, this->options_alc);
 		*opt = (ParseTreeOption) {
 			.next_token = token + 1,
-			.node = {
-				.type = NODE(SUB_DECLARATION),
-				.u.decl = {
-					.type = node->u.type,
-					.id = id
-				}
-			}
+			.node = { .type = NODE(SUB_DECLARATION), .u = nnode.u }
 		};
 		return;
 	}
@@ -287,6 +313,8 @@ void ParseTree_branch_brace(ParseTree *this, Token *token, ParseTreeNode *node) 
 			goto handle_braced;
 		case NODE(FUNCTION):
 			goto handle_call;
+		case NODE(DECLARATION):
+			goto handle_fdecl;
 		default:;
 	}
 
@@ -307,6 +335,17 @@ void ParseTree_branch_brace(ParseTree *this, Token *token, ParseTreeNode *node) 
 			.next_token = token + 1,
 			.node = {
 				.type = NODE(SUB_BRACED)
+			}
+		};
+	}
+
+	if (0) handle_fdecl: {
+		ParseTreeOption *opt = Vector_push(&this->options, this->options_alc);
+		*opt = (ParseTreeOption) {
+			.next_token = token + 1,
+			.node = {
+				.type = NODE(SUB_FUN_DECLARATION),
+				.u = node->u
 			}
 		};
 	}
@@ -333,6 +372,9 @@ void ParseTree_dispatch(ParseTree *this, Token *token, ParseTreeNode *node) {
 		case TOKEN_TYPE_NUMERIC_LITERAL: 
 			ParseTree_branch_number(this, token, node);
 			break;
+		case TOKEN_TYPE_STRING_LITERAL:
+			ParseTree_branch_string(this, token, node);
+			break;
 		case TOKEN_TYPE_IDENTIFIER:
 			ParseTree_dispatch_identifier(this, token, node);
 			break;
@@ -351,6 +393,7 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 	ParseTree tree = {
 		.ctx = ctx,
 		.options_alc = ctx->tmp_alc,
+		.flags = flags
 	};
 
 	Token *token = NULL;
@@ -368,6 +411,15 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 	if (0) sub_number: {
 		ParserResult result = ParserResult_NULL;
 		Parser_parseNumber(root_node.u.str, ctx, &result);
+		if (Parser_checkfwd(&result, out)) return;
+
+		root_node.type = NODE(VALUE);
+		root_node.u.value = result.node;
+	}
+	
+	if (0) sub_string: {
+		ParserResult result = ParserResult_NULL;
+		Parser_parseString(root_node.u.str, ctx, &result);
 		if (Parser_checkfwd(&result, out)) return;
 
 		root_node.type = NODE(VALUE);
@@ -476,10 +528,53 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 		root_node.u.value = result.node;
 	}
 
+	if (0) sub_value: {
+		if (Node_isValueNode(root_node.u.value)) goto sub_unwrap;
+		if (flags & PARSENODE_FLAG_NO_EVALUATE) goto sub_evaluate_skip;
+
+		int eval_flags = ParserNode_eval_flags(root_node.u.value, ctx);
+
+		if (eval_flags & PARSERNODE_EVAL_FLAG_IMPOSSIBLE) {
+			if (flags & PARSENODE_FLAG_MUST_EVALUATE) {
+				Parser_throw(ctx, &token->src, PARSER_RESULT_PANIC, "Cannot evaluate expression at parsetime (MUST_EVALUATE)", out);
+				return;
+			}
+			goto sub_evaluate_skip;
+		}
+
+		if (eval_flags & PARSERNODE_EVAL_FLAG_STACK) {
+			if (!(flags & PARSENODE_FLAG_MUST_EVALUATE)) goto sub_evaluate_skip;
+		}
+
+		ParserResult result = ParserResult_NULL;
+		ParserNode_evaluate(root_node.u.value, eval_flags, ctx, &result);
+		if (Parser_checkfwd(&result, out)) return;
+
+		root_node.type = NODE(VALUE);
+		root_node.u.value = result.node;
+
+		if (0) sub_evaluate_skip: goto dispatch_token;
+	}
+
+	if (0) sub_unwrap: {
+		ValueNode *val = root_node.u.value.object;
+
+		if (Type_equalPrimitive(val->T, PRIMITIVE_TYPE_TYPE)) {
+			root_node.type = NODE(TYPE);
+			root_node.u.type = *(Type*)val->data;
+			goto sub_unwrap_end;
+		}
+
+		goto dispatch_token;
+
+		sub_unwrap_end:;
+	}
+
 	while (true) {
 		switch (root_node.type) {
 			case NODE(SUB_CONTROL): goto sub_control;
 			case NODE(SUB_NUMBER): goto sub_number;
+			case NODE(SUB_STRING): goto sub_string;
 			case NODE(SUB_DECLARATION): goto sub_declaration;
 			case NODE(SUB_BRACED): goto sub_braced;
 			case NODE(SUB_FRAME): goto sub_frame;
@@ -487,8 +582,12 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 			case NODE(SUB_SET): goto sub_set;
 			case NODE(SUB_CONDITION): goto sub_condition;
 			case NODE(SUB_LOOP): goto sub_loop;
+
+			case NODE(VALUE): goto sub_value;
 			default:;
 		}
+
+		dispatch_token:;
 
 		Vector_clear(&tree.options);
 		token = TokenStream_probe(ts);
@@ -523,10 +622,22 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 			ParseTreeOption *it = Vector_begin(&tree.options);
 			ParseTreeOption *end = Vector_end(&tree.options);
 			for (; it < end; it++) {
+				switch (it->node.type) {
+					case NODE(SUB_DECLARATION): {
+						if (flags & PARSENODE_FLAG_NO_DECLARE) goto discard_option;
+						break;
+					}
+					default:;
+				}
+
+				if (0) discard_option: continue;
+
 				int rating = (int)(it->next_token - token);
+				
 				#ifdef BUILD_DEBUG
 				fprintf(stderr, "option: %s, %d\n", EParseTreeNode_REPR[it->node.type], rating);
 				#endif
+
 				if (rating > max_rating) {
 					max_rating = rating;
 					opt = it;
@@ -549,12 +660,26 @@ void Parser_parseNode(int flags, TokenStream *ts, ParserContext *ctx, ParserResu
 	}
 
 	switch (root_node.type) {
-		case NODE(VALUE):
+		case NODE(VALUE): {
 			out->node = root_node.u.value;
 			break;
-		case NODE(MEMBER):
-			out->node = GetNode_create(root_node.u.member, ctx->state->program_alc);
+		}
+		case NODE(MEMBER): {
+			if (Type_equalPrimitive(out->expect, PRIMITIVE_TYPE_MEMBER)) {
+				out->node = ValueNode_create(PrimitiveType_upcast(PRIMITIVE_TYPE_MEMBER), (char*)&root_node.u.member, ctx->state->program_alc);
+			} else {
+				out->node = GetNode_create(root_node.u.member, ctx->state->program_alc);
+			}
 			break;
+		}
+		case NODE(TYPE): {
+			Type T = Type_copy(root_node.u.type, ctx->state->program_alc);
+			out->node = ValueNode_create(
+				PrimitiveType_upcast(PRIMITIVE_TYPE_TYPE), (char*)&T,
+				ctx->state->program_alc
+			);
+			break;
+		}
 		case NODE(NONE):
 		default:
 			goto err_incomplete;

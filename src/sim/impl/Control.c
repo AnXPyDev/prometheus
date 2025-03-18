@@ -3,6 +3,12 @@
 void ControlNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_result) {
 	SimResult result = SimResult_NULL;
 
+	switch (this->signal) {
+		case SIM_CONTROL_SIGNAL_DEFER:;
+			goto handle_defer;
+		default:;
+	}
+
 	SimNode_evaluate(this->value, context, &result);
 	if (result.control) {
 		switch (result.control) {
@@ -26,6 +32,10 @@ void ControlNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *o
 	out_result->control_origin = vthis;
 	out_result->control_target = this->target;
 	out_result->value = result.value;
+
+	if (0) handle_defer: {
+		*(Node*)Vector_push(&context->frame->deferred, context->frame->deferred_alc) = this->value;
+	}
 }
 
 const ISimNode ISimNode_ControlNode = {

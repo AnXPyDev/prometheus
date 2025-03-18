@@ -1,10 +1,3 @@
-typedef struct ParserFrame {
-	struct ParserFrame *parent;
-	MemberList *memberlist;
-	HashMap values;
-	Allocator alc;
-} ParserFrame;
-
 typedef struct {
 	Member *member;
 	void *value;
@@ -15,6 +8,8 @@ const MemberValuePair MemberValuePair_NULL = {
 	.value = NULL
 };
 
+#define MEMBERKEY(m) ((BufferView) { .data = (char*)&(m), .size = sizeof(Member*) })
+
 void ParserFrame_create(ParserFrame *this, ParserFrame *parent, MemberList *ml, Allocator alc) {
 	this->alc = alc;
 	HashMap_create(&this->values, sizeof(void*));
@@ -23,8 +18,19 @@ void ParserFrame_create(ParserFrame *this, ParserFrame *parent, MemberList *ml, 
 }
 
 void *ParserFrame_getValue(ParserFrame *this, Member *member) {
-	void **val = HashMap_get(&this->values, (BufferView) { .data = (char*)&member, .size = sizeof(Member*) });
+	void **val = HashMap_get(&this->values, MEMBERKEY(member));
 	if (val) return *val;
+	return NULL;
+}
+
+void ParserFrame_setValue(ParserFrame *this, Member *member, void *vp) {
+	void **val = HashMap_ensure(&this->values, MEMBERKEY(member), this->alc);
+	*val = vp;
+}
+
+ParserFrame *ParserFrame_getMemberOwner(ParserFrame *this, Member *member) {
+	if (member->owner == this->memberlist) return this;
+	if (this->parent) return ParserFrame_getMemberOwner(this->parent, member);
 	return NULL;
 }
 
@@ -56,3 +62,5 @@ ParserFrame *ParserFrame_getRoot(ParserFrame *this) {
 	}
 	return frame;
 }
+
+#undef MEMBERKEY

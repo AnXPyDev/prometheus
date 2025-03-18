@@ -48,6 +48,13 @@ bool PointerType_equal(void *vthis, void *vother) {
     return Type_equal(this->T, other->T);
 }
 
+bool PointerType_match(void *vthis, Type other) {
+    Type sother = Type_strip(other);
+    if (!Type_isPointerType(sother)) return false;
+    PointerType *pother = sother.object;
+    return Type_match(this->T, pother->T);
+}
+
 #undef this
 
 const IType IType_PointerType = {
@@ -56,6 +63,7 @@ const IType IType_PointerType = {
     .copy = &PointerType_copy,
     .destroy = &PointerType_destroy,
     .equal = &PointerType_equal,
+    .match = &PointerType_match
 };
 
 Type PointerType_upcast(PointerType *this) {

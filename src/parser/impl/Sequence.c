@@ -26,3 +26,25 @@ void Parser_parseSequence(TokenStream *ts, ParserContext *ctx, ParserResult *out
 
 	out->node = SequenceNode_create(Vector_array(&nodes), ctx->state->program_alc);
 }
+
+#define this ((SequenceNode*)vthis)
+
+int SequenceNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	int result = 0;
+
+	Node *it = this->nodes;
+	Node *end = it + this->size;
+
+	for (; it < end; it++) {
+		if ((result |= ParserNode_eval_flags(*it, ctx)) & PARSERNODE_EVAL_FLAG_IMPOSSIBLE)
+			break;
+	}
+
+	return result;
+}
+
+#undef this
+
+const IParserNode IParserNode_SequenceNode = {
+	.eval_flags = &SequenceNode_ParserNode_eval_flags
+};

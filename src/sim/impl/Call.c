@@ -47,7 +47,7 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 			goto quit_1;
 		}
 
-		if (!Type_equal(result.value.type, (*(mp++))->type)) {
+		if (!Type_match((*(mp++))->type, result.value.type)) {
 			SimResult_throwMessage("CallNode: arg type mismatch", vthis, context, out_result);
 			goto quit_1;
 		}
@@ -65,14 +65,19 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 	Allocator temp_alc = ArenaAllocator_upcast(&temp_alc_);
 
 	SimStackFrame *stackframe = SimStackFrame_create(
-		context->state->root_frame, this->function->arguments, mlinfo, temp_alc
+		context->state->root_frame, this->function->arguments, mlinfo, temp_alc, temp_alc
 	);
 
 	{
 		SimMemberInfo *info = mlinfo->info;
 		SimValue *arg = args;
+
 		for (Size i = 0; i < this->argcount; i++) {
-			memcpy(stackframe->data + info->offset, arg->data, info->type_size);
+			if (info->flags & MEMBERINFO_FLAG_ANY) {
+				memcpy(stackframe->data + info->offset, arg, info->type_size);
+			} else {
+				memcpy(stackframe->data + info->offset, arg->data, info->type_size);
+			}
 			arg++;
 			info++;
 		}
@@ -86,6 +91,7 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 
 	SimResult result = SimResult_NULL;
 	SimNode_evaluate(this->function->node, &new_context, &result);
+	SimStackFrame_evaluateDeferred(stackframe, &new_context, &result);
 	if (result.control) {
 		switch (result.control) {
 			case SIM_CONTROL_SIGNAL_EMIT:
@@ -107,7 +113,8 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 	if (0) interrupt_2: {
 		SimResult_copy(&result, out_result, context);
 	}
-	
+
+	SimStackFrame_destroy(stackframe, temp_alc);
 	ArenaAllocator_destroy(&temp_alc_);
 }
 

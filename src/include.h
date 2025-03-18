@@ -12,6 +12,10 @@
 #include "sim/SimResult.h"
 #include "sim/SimNode.h"
 
+#include "parser/ParserFrame.h"
+#include "parser/ParserContext.h"
+#include "parser/ParserNode.h"
+
 #include "tree/Node.c"
 
 #include "typing/types/Primitive.c"
@@ -21,6 +25,9 @@
 #include "typing/types/Union.c"
 #include "typing/types/Tuple.c"
 #include "typing/types/Array.c"
+#include "typing/types/Span.c"
+
+#include "typing/Global.c"
 
 #include "tree/Function.c"
 
@@ -46,11 +53,11 @@
 
 
 #include "sim/SimCache.c"
-#include "sim/SimStackFrame.c"
 #include "sim/SimContext.c"
 #include "sim/SimValue.c"
 #include "sim/SimResult.c"
 #include "sim/SimNode.c"
+#include "sim/SimStackFrame.c"
 
 #include "sim/impl/Get.c"
 #include "sim/impl/Set.c"
@@ -78,19 +85,26 @@
 #include "parser/Tokenizer.c"
 #include "parser/ParserFrame.c"
 #include "parser/Util.c"
-#include "parser/ParserContext.h"
 #include "parser/ParserResult.h"
 #include "parser/ParserResult.c"
+#include "parser/ParserNode.c"
 
 #include "parser/impl/Node.h"
 #include "parser/impl/Number.c"
+#include "parser/impl/String.c"
 #include "parser/impl/Control.c"
 #include "parser/impl/Sequence.c"
 #include "parser/impl/Frame.c"
 #include "parser/impl/Call.c"
+#include "parser/impl/Catch.c"
 #include "parser/impl/Condition.c"
 #include "parser/impl/Loop.c"
 #include "parser/impl/Node.c"
+#include "parser/impl/nodes.c"
 
 #include "parser/Builtin.c"
+
+#include "language/builtins/Typing.c"
+#include "language/builtins/Print.c"
+#include "language/builtins/Arithmetic.c"
 #include "language/Builtin.c"

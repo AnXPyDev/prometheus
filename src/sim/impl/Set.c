@@ -31,8 +31,20 @@ void SetNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_r
 		return;
 	}
 
-	Size ts = Type_size(result.value.type);
-	memcpy(data, result.value.data, ts);
+	if (Type_equalPrimitive(Type_strip(this->member->type), PRIMITIVE_TYPE_ANY)) {
+		*(SimValue*)data = result.value;
+		return;
+	}
+
+	Size tsm = Type_size(this->member->type);
+	Size tsr = Type_size(result.value.type);
+
+	if (tsm != tsr) {
+		SimResult_throwMessage("SetNode: result type size and member type size do not match", vthis, context, out_result);
+		return;
+	}
+
+	memcpy(data, result.value.data, tsm);
 
 	return_result:;
 	out_result->value = result.value;

@@ -73,6 +73,20 @@ bool TupleType_equal(void *vthis, void *vother) {
 	return true;
 }
 
+bool TupleType_match(void *vthis, Type vother) {
+	if (!Type_isTupleType(vother)) return false;
+	TupleType *other = vother.object;
+
+	if (this->size != other->size) false;
+
+	Type *oit = other->elements;
+	Type *end = this->elements + this->size;
+	for (Type *it = this->elements; it < end; it++) {
+		if (!Type_match(*it, *(oit++))) return false;
+	}
+	return true;
+}
+
 void ConstTupleType_destroy(void *vthis, Allocator alc) {}
 
 Type TupleType_constcast(void *vthis) {
@@ -95,6 +109,7 @@ const IType IType_TupleType = {
    .copy = &TupleType_copy,
    .destroy = &TupleType_destroy,
 	.equal = &TupleType_equal,
+	.match = &TupleType_match,
 	.constcast = &TupleType_constcast,
 	.recast = &TupleType_recast,
 };
@@ -105,6 +120,7 @@ const IType IType_ConstTupleType = {
 	.copy = &ConstTupleType_copy,
 	.destroy = &ConstTupleType_destroy,
 	.equal = &TupleType_equal,
+	.match = &TupleType_match,
 	.constcast = &TupleType_constcast,
 	.recast = &TupleType_recast,
 };
@@ -131,4 +147,9 @@ Type MemberList_type(MemberList *this, Allocator alc) {
 	}
 
 	return TupleType_upcast(tuple);
+}
+
+
+bool Type_isTupleType(Type this) {
+	return this.interface == &IType_TupleType || this.interface == &IType_ConstTupleType;
 }

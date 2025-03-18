@@ -1,9 +1,5 @@
-int x = -5;
+int i = 5;
 
-loop {
-	print(x);
-
-	if x 0 else break 1;
-
-	x = add(x, neg(1));
+if (i) {
+	print("Hello World!");
 }

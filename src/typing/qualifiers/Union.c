@@ -68,6 +68,29 @@ Qualifier UnionQualifier_recast(void *vthis) {
 	return UnionQualifier_upcast(this);
 }
 
+bool UnionQualifier_match_reverse(void *vthis, Qualifier other) {
+	Qualifier *it = this->elements;
+	Qualifier *end = it + this->size;
+	for (; it < end; it++) {
+		if (!Qualifier_match(other, UnionQualifier_upcast(this))) return false;
+	}
+	return true;
+}
+
+bool UnionQualifier_match(void *vthis, Qualifier other) {
+	if (Qualifier_isUnionQualifier(other)) {
+		return UnionQualifier_match_reverse(other.object, UnionQualifier_upcast(this));
+	}
+		
+	Qualifier *it = this->elements;
+	Qualifier *end = it + this->size;
+	for (; it < end; it++) {
+		if (!Qualifier_match(*it, other)) return false;
+	}
+	return true;
+
+}
+
 #undef this
 
 const IQualifier IQualifier_UnionQualifier = {
@@ -76,6 +99,7 @@ const IQualifier IQualifier_UnionQualifier = {
 	.destroy = &UnionQualifier_destroy,
 	.constcast = &UnionQualifier_constcast,
 	.recast = &UnionQualifier_recast,
+	.match = &UnionQualifier_match,
 };
 
 const IQualifier IQualifier_ConstUnionQualifier = {
@@ -84,6 +108,7 @@ const IQualifier IQualifier_ConstUnionQualifier = {
 	.destroy = &ConstUnionQualifier_destroy,
 	.constcast = &UnionQualifier_constcast,
 	.recast = &UnionQualifier_recast,
+	.match = &UnionQualifier_match,
 };
 
 Qualifier UnionQualifier_upcast(UnionQualifier *this) {

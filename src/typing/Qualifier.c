@@ -6,6 +6,7 @@ typedef struct {
     void (*destroy)(void *this, Allocator alc);
     struct Qualifier (*constcast)(void *this);
     struct Qualifier (*recast)(void *this);
+    bool (*match)(void *this, struct Qualifier other);
 } IQualifier;
 
 typedef struct Qualifier {
@@ -16,6 +17,9 @@ typedef struct Qualifier {
 const Qualifier Qualifier_NULL = { 0 };
 
 bool Qualifier_isNull(Qualifier this) { return this.interface == NULL; }
+bool Qualifier_isPrimitive(Qualifier);
+bool Qualifier_isUnionQualifier(Qualifier);
+
 
 Printable Qualifier_repr(Qualifier this) {
     if (Qualifier_isNull(this)) return Printable_NULL;
@@ -42,4 +46,17 @@ Qualifier Qualifier_recast(Qualifier this) {
     if (Qualifier_isNull(this)) return Qualifier_NULL;
     if (!this.interface->recast) return this;
     return this.interface->recast(this.object);
+}
+
+bool Qualifier_match(Qualifier this, Qualifier other) {
+    bool this_null = Qualifier_isNull(this);
+    bool other_null = Qualifier_isNull(other);
+
+    if (this_null && other_null) return true;
+    if (this_null) return false;
+    if (other_null) return true;
+
+    if (!this.interface->match) return false;
+
+    return this.interface->match(this.object, other);
 }

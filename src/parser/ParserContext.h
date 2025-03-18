@@ -1,6 +1,7 @@
 typedef struct {
 	Allocator program_alc;
 	OutStream logstream;
+	ParserFrame *root_frame;
 } ParserState;
 
 typedef struct {

@@ -20,7 +20,7 @@ void ControlNode_print(void *vthis, OutStream os, StringView fmt) {
 }
 
 Type ControlNode_resultType(void *vthis, Allocator alc) {
-	return Node_resultType(this->value, alc);
+	return Type_NULL; //Node_resultType(this->value, alc);
 }
 
 void ControlNode_destroy(void *vthis, Allocator alc) {

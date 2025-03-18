@@ -58,3 +58,33 @@ void Parser_parseCall(Array funcs, TokenStream *ts, ParserContext *ctx, ParserRe
 
 	out->node = CallNode_create(function, Vector_array(&args), ctx->state->program_alc);
 }
+
+#define this ((CallNode*)vthis)
+
+int CallNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	int result = 0;
+	{
+		Node *it = this->arguments;
+		Node *end = it + this->argcount;
+		for (; it < end; it++) {
+			if ((result |= ParserNode_eval_flags(*it, ctx)) & PARSERNODE_EVAL_FLAG_IMPOSSIBLE)
+				return result;
+		}
+	}
+
+	ParserContext newctx = {
+		.state = ctx->state,
+		.frame = ctx->state->root_frame,
+		.tmp_alc = ctx->tmp_alc	
+	};
+
+	result |= ParserNode_eval_flags(this->function->node, &newctx);
+
+	return result;
+}
+
+#undef this
+
+const IParserNode IParserNode_CallNode = {
+	.eval_flags = &CallNode_ParserNode_eval_flags
+};

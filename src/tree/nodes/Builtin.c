@@ -1,14 +1,20 @@
+enum {
+	BUILTIN_NODE_FLAG_PURE = 1 << 0
+};
+
 typedef struct {
 	const void *builtin;
+	int flags;
 	Type result;
 	Size size;
 	Node nodes[];
 } BuiltinNode;
 
 Node BuiltinNode_upcast(BuiltinNode *this);
-Node BuiltinNode_create(const void *builtin, Type result, Array nodes, Allocator alc) {
+Node BuiltinNode_create(const void *builtin, Type result, Array nodes, int flags, Allocator alc) {
 	BuiltinNode *this = Allocator_malloc(alc, sizeof(BuiltinNode) + sizeof(Node) * nodes.size);
 	this->builtin = builtin;
+	this->flags = flags;
 	this->size = nodes.size;
 	this->result = Type_copy(result, alc);
 	memcpy(this->nodes, nodes.data, sizeof(Node) * nodes.size);

@@ -5,7 +5,7 @@ typedef struct {
 
 Node ValueNode_upcast(ValueNode*);
 
-Node ValueNode_create(Type T, char *data, Allocator alc) {
+Node ValueNode_create(Type T, const char *data, Allocator alc) {
 	Size ts = Type_size(T);
 	ValueNode *this = Allocator_malloc(alc, sizeof(ValueNode) + ts);
 	this->T = Type_copy(T, alc);

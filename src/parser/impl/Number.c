@@ -8,5 +8,8 @@ void Parser_parseNumber(BufferView str, ParserContext *ctx, ParserResult *out) {
 	vstr[str.size] = 0;
 	int val = atoi(vstr);
 
-	out->node = ValueNode_create(TYPE_INT, (char*)&val, ctx->state->program_alc);
+	out->node = ValueNode_create(
+		PrimitiveType_upcast(PRIMITIVE_TYPE_INT),
+		(char*)&val, ctx->state->program_alc
+	);
 }

@@ -7,6 +7,11 @@ void GetNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_r
 		goto interrupt;
 	}
 
+	if (Type_equalPrimitive(Type_strip(this->member->type), PRIMITIVE_TYPE_ANY)) {
+		out_result->value = *(SimValue*)data;
+		return;
+	}
+
 	out_result->value = SimValue_create(data, this->member->type, context->temp_alc);
 
 	interrupt:;

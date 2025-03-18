@@ -4,6 +4,7 @@ typedef struct {
     void (*destroy)(void *this, Allocator alc);
 
     ISimNode simext;
+    IParserNode pext;
 } INode;
 
 typedef struct {

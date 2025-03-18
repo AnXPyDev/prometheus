@@ -55,3 +55,24 @@ void Parser_parseCondition(TokenStream *ts, ParserContext *ctx, ParserResult *ou
 
 	out->node = ConditionNode_create(res_cond.node, res_true.node, else_node, ctx->state->program_alc);
 }
+
+#define this ((ConditionNode*)vthis)
+
+int ConditionNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	int result = 0;
+
+	if ((result |= ParserNode_eval_flags(this->condition, ctx)) & PARSERNODE_EVAL_FLAG_IMPOSSIBLE)
+		return result;
+
+	if ((result |= ParserNode_eval_flags(this->node_true, ctx)) & PARSERNODE_EVAL_FLAG_IMPOSSIBLE)
+		return result;
+
+	result |= ParserNode_eval_flags(this->node_false, ctx);
+	return result;
+}
+
+#undef this
+
+const IParserNode IParserNode_ConditionNode = {
+	.eval_flags = &ConditionNode_ParserNode_eval_flags
+};
