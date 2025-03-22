@@ -24,6 +24,10 @@ void LoopNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node LoopNode_copy(void *vthis, Allocator alc) {
+	return LoopNode_create(Node_copy(this->value, alc), alc);
+}
+
 #undef this
 
 const IPrintable IPrintable_LoopNode = {
@@ -37,7 +41,8 @@ Printable LoopNode_repr(void *vthis) {
 INode INode_LoopNode = {
 	.repr_ = &LoopNode_repr,
 	.resultType = &LoopNode_resultType,
-	.destroy = &LoopNode_destroy
+	.destroy = &LoopNode_destroy,
+	.copy = &LoopNode_copy
 };
 
 Node LoopNode_upcast(LoopNode *this) {

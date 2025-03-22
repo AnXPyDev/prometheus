@@ -14,8 +14,8 @@ void Language_builtin_sum_int_(Array args, SimContext *ctx, SimResult *out) {
 
 Sim_builtin_fn_t Language_builtin_sum_int = &Language_builtin_sum_int_;
 
-Function *Language_builtin_sum_int_toFunction(Allocator alc) {
-	MemberList *args = MemberList_create(alc);
+Function *Language_builtin_sum_int_toFunction(MemberListAllocator *mla, Allocator alc) {
+	MemberList *args = MemberList_create(mla);
 	
 	Member *arg_a = MemberList_add(
 		args, strview("a"), Qualifier_NULL, PrimitiveType_upcast(PRIMITIVE_TYPE_INT)
@@ -49,8 +49,8 @@ void Language_builtin_neg_int_(Array args, SimContext *ctx, SimResult *out) {
 
 Sim_builtin_fn_t Language_builtin_neg_int = &Language_builtin_neg_int_;
 
-Function *Language_builtin_neg_int_toFunction(Allocator alc) {
-	MemberList *args = MemberList_create(alc);
+Function *Language_builtin_neg_int_toFunction(MemberListAllocator *mla, Allocator alc) {
+	MemberList *args = MemberList_create(mla);
 	
 	Member *arg_a = MemberList_add(
 		args, strview("a"), Qualifier_NULL, PrimitiveType_upcast(PRIMITIVE_TYPE_INT)

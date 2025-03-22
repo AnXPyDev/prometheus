@@ -36,6 +36,14 @@ void SetPointerNode_destroy(void *vthis, Allocator alc) {
 	Node_destroy(this->value, alc);
 }
 
+Node SetPointerNode_copy(void *vthis, Allocator alc) {
+	return SetPointerNode_create(
+		Node_copy(this->pointer, alc),
+		Node_copy(this->value, alc),
+		alc
+	);
+}
+
 #undef this
 
 const IPrintable IPrintable_SetPointerNode = {
@@ -50,6 +58,7 @@ INode INode_SetPointerNode = {
 	.repr_ = &SetPointerNode_repr,
 	.resultType = &SetPointerNode_resultType,
 	.destroy = &SetPointerNode_destroy,
+	.copy = &SetPointerNode_copy
 };
 
 Node SetPointerNode_upcast(SetPointerNode *this) {

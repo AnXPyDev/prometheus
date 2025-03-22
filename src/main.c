@@ -62,24 +62,29 @@ int main(int argc, char **argv) {
 	
 	fprintf(stdout, "\n\n");
 	#endif
+
+	MemberListAllocator mla;
+	MemberListAllocator_create(&mla, alc);
 	
 	ParserFrame pframe;
-	ParserFrame_create(&pframe, NULL, MemberList_create(alc), alc);
-
-	Parser_setupBuiltins(&pframe, alc);
-	Language_setupBuiltins(&pframe, alc);
+	ParserFrame_create(&pframe, NULL, MemberList_create(&mla), alc);
 
 	ParserState parser = {
-		.logstream = g_os_stderr,
-		.program_alc = alc,
+		.alc = alc,
+		.mla = &mla,
 		.root_frame = &pframe
 	};
 
 	ParserContext parser_ctx = {
 		.state = &parser,
 		.frame = parser.root_frame,
-		.tmp_alc = alc
+		.tmp_alc = alc,
+		.program_alc = alc,
+		.logstream = g_os_stderr,
 	};
+	
+	Parser_setupBuiltins(&parser_ctx);
+	Language_setupBuiltins(&parser_ctx);
 
 	TokenStream ts = { .token = Vector_begin(&tokens) };
 

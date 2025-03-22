@@ -1,6 +1,6 @@
 typedef struct {
 	Allocator alc;
-	HashMap memberlists;
+	HashMap *memberlists;
 } SimCache;
 
 enum {

@@ -27,7 +27,7 @@ void FunctionType_info(void *vthis, TypeInfo *out_info) {
 	*out_info = (TypeInfo) {
 		.valid = ainfo.valid && rinfo.valid,
 		.abstract = true,
-		.size = PRIMITIVE_TYPE_ABSTRACT_SIZE
+		.size = sizeof(FunctionValue)
 	};
 }
 
@@ -60,6 +60,16 @@ bool FunctionType_equal(void *vthis, void *vother) {
 	return Type_equal(this->argument, other->argument) && Type_equal(this->result, other->result);
 }
 
+Hash FunctionType_hash(void *vthis) {
+	return Hash_combine(
+		Hash_fromIntPtr((intptr_t)&FunctionType_hash),
+		Hash_combine(
+			Type_hash(this->argument),
+			Type_hash(this->result)
+		)
+	);
+}
+
 #undef this
 
 const IPrintable IPrintable_FunctionType = {
@@ -76,7 +86,8 @@ const IType IType_FunctionType = {
 	.copy = &FunctionType_copy,
 	.destroy = &FunctionType_destroy,
 	.equal = &FunctionType_equal,
-	.constcast = &FunctionType_constcast
+	.constcast = &FunctionType_constcast,
+	.hash = &FunctionType_hash
 };
 
 const IType IType_ConstFunctionType = {
@@ -87,6 +98,7 @@ const IType IType_ConstFunctionType = {
 	.equal = &FunctionType_equal,
 	.constcast = &FunctionType_constcast,
 	.recast = &FunctionType_recast,
+	.hash = &FunctionType_hash
 };
 
 Type FunctionType_upcast(FunctionType *this) {

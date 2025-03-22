@@ -20,6 +20,10 @@ Type TakePointerNode_resultType(void *vthis, Allocator alc) {
 	return PointerType_create(this->member->type, alc);
 }
 
+Node TakePointerNode_copy(void *vthis, Allocator alc) {
+	return TakePointerNode_create(this->member, alc);
+}
+
 void TakePointerNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
@@ -38,6 +42,7 @@ INode INode_TakePointerNode = {
 	.repr_ = &TakePointerNode_repr,
 	.resultType = &TakePointerNode_resultType,
 	.destroy = &TakePointerNode_destroy,
+	.copy = &TakePointerNode_copy
 
 	// simext initialized at runtime
 };

@@ -1,13 +1,13 @@
 void Parser_setupKeyword(ParserFrame *frame, const char *id, int keyword_code, Allocator alc) {
-	int *v = Allocator_malloc(alc, sizeof(int));
-	*v = keyword_code;
-
-	*ParserFrame_setupMemberWithValue(
+	*(int*)ParserFrame_setupMemberWithValue(
 		frame, strview(id), PrimitiveType_upcast(PRIMITIVE_TYPE_KEYWORD)
-	) = v;
+	) = keyword_code;
 }
 
-void Parser_setupBuiltins(ParserFrame *frame, Allocator alc) {
+void Parser_setupBuiltins(ParserContext *ctx) {
+	ParserFrame *frame = ctx->frame;
+	Allocator alc = ctx->program_alc;
+
 	// control
 	Parser_setupKeyword(frame, "return", PARSER_KEYWORD_RETURN, alc);
 	Parser_setupKeyword(frame, "throw", PARSER_KEYWORD_THROW, alc);

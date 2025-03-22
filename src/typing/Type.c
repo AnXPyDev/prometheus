@@ -47,6 +47,7 @@ typedef struct {
     struct Type (*copy)(void *this, Allocator alc);
     bool (*equal)(void *this, void *other);
     bool (*match)(void *this, struct Type other);
+    Hash (*hash)(void *this);
     
     struct Type (*constcast)(void *this);
     struct Type (*recast)(void *this);
@@ -114,6 +115,16 @@ bool Type_match(Type this, Type other) {
     if (Type_isNull(this)) return false;
     if (!this.interface->match) return Type_equal(this, other);
     return this.interface->match(this.object, other);
+}
+
+bool Type_nullOrMatch(Type this, Type other) {
+    if (Type_isNull(this)) return true;
+    return Type_match(this, other);
+}
+
+Hash Type_hash(Type this) {
+    if (!this.interface->match) return Hash_NULL;
+    return this.interface->hash(this.object);
 }
 
 bool Type_isPrimitive(Type);

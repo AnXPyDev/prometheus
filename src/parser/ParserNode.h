@@ -22,3 +22,4 @@ extern const IParserNode IParserNode_CatchNode;
 extern const IParserNode IParserNode_ControlNode;
 extern const IParserNode IParserNode_CallNode;
 extern const IParserNode IParserNode_LoopNode;
+extern const IParserNode IParserNode_ClosureNode;

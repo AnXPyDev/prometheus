@@ -1,0 +1,25 @@
+bool ParseTree_sub_loop(
+	ParseTree *this, TokenStream *ts, ParseTreeState **statep, void *payload
+) {
+	ParserResult result = ParserResult_NULL;
+	Parser_parseLoop(ts, this->ctx, &result);
+	if (Parser_checkfwd(&result, this->result)) return false;
+
+	ParseTreeState_NODE *node_state = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
+	node_state->header.type = PARSETREE_STATE_NODE;
+	node_state->node = result.node;
+
+	*statep = (ParseTreeState*)node_state;
+	return true;
+}
+
+void ParseTree_branch_loop(
+	ParseTree *this, Token *token, ParseTreeState *state
+) {
+	ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub));
+	opt->header.next_token = token + 1;
+	opt->header.type = PARSETREE_OPTION_SUB;
+	opt->subf = &ParseTree_sub_loop;
+
+	ParseTree_pushOption(this, opt);
+}

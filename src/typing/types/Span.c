@@ -52,6 +52,13 @@ bool SpanType_match(void *vthis, Type other) {
     return Type_match(this->T, sother->T);
 }
 
+Hash SpanType_hash(void *vthis) {
+    return Hash_combine(
+        Hash_fromIntPtr((intptr_t)&SpanType_hash),
+        Type_hash(this->T)
+    );
+}
+
 #undef this
 
 const IType IType_SpanType = {
@@ -60,6 +67,7 @@ const IType IType_SpanType = {
     .copy = &SpanType_copy,
     .destroy = &SpanType_destroy,
     .equal = &SpanType_equal,
+    .hash = &SpanType_hash
 };
 
 Type SpanType_upcast(SpanType *this) {

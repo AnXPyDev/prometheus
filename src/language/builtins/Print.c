@@ -41,8 +41,8 @@ void Language_builtin_print_(Array args, SimContext *ctx, SimResult *out) {
 
 Sim_builtin_fn_t Language_builtin_print = &Language_builtin_print_;
 
-Function *Language_builtin_print_toFunction(Allocator alc) {
-	MemberList *args = MemberList_create(alc);
+Function *Language_builtin_print_toFunction(MemberListAllocator *mla, Allocator alc) {
+	MemberList *args = MemberList_create(mla);
 	Member *arg_val = MemberList_add(
 		args, strview("val"), Qualifier_NULL, PrimitiveType_upcast(PRIMITIVE_TYPE_ANY)
 	);
@@ -77,8 +77,8 @@ void Language_builtin_printdump_(Array args, SimContext *ctx, SimResult *out) {
 
 Sim_builtin_fn_t Language_builtin_printdump = &Language_builtin_printdump_;
 
-Function *Language_builtin_printdump_toFunction(Allocator alc) {
-	MemberList *args = MemberList_create(alc);
+Function *Language_builtin_printdump_toFunction(MemberListAllocator *mla, Allocator alc) {
+	MemberList *args = MemberList_create(mla);
 	Member *arg_val = MemberList_add(
 		args, strview("val"), Qualifier_NULL, PrimitiveType_upcast(PRIMITIVE_TYPE_ANY)
 	);

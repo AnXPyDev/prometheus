@@ -15,7 +15,7 @@ void Parser_parseSequence(TokenStream *ts, ParserContext *ctx, ParserResult *out
 		}
 
 		ParserResult result = ParserResult_NULL;
-		Parser_parseNode(0, ts, ctx, &result);
+		Parser_parseNode(ts, ctx, &result);
 
 		if (Parser_checkfwd(&result, out)) return;
 
@@ -24,7 +24,14 @@ void Parser_parseSequence(TokenStream *ts, ParserContext *ctx, ParserResult *out
 		if (0) handle_end: break;
 	}
 
-	out->node = SequenceNode_create(Vector_array(&nodes), ctx->state->program_alc);
+	if (nodes.size == 0) {
+	} else if (nodes.size == 1) {
+		out->node = *(Node*)Vector_begin(&nodes);
+	} else {
+		out->node = SequenceNode_create(Vector_array(&nodes), ctx->program_alc);
+	}
+
+	Vector_destroy(&nodes, ctx->tmp_alc);
 }
 
 #define this ((SequenceNode*)vthis)

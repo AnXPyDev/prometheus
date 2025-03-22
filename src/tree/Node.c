@@ -1,13 +1,16 @@
+struct Node;
+
 typedef struct {
     Printable (*repr_)(void *this);
     Type (*resultType)(void *this, Allocator alc);
     void (*destroy)(void *this, Allocator alc);
+    struct Node (*copy)(void *this, Allocator alc);
 
     ISimNode simext;
     IParserNode pext;
 } INode;
 
-typedef struct {
+typedef struct Node {
     const INode *interface;
     void *object;
 } Node;
@@ -29,4 +32,9 @@ Type Node_resultType(Node this, Allocator alc) {
 void Node_destroy(Node this, Allocator alc) {
     if (Node_isNull(this)) return;
     this.interface->destroy(this.object, alc);
+}
+
+Node Node_copy(Node this, Allocator alc) {
+    if (Node_isNull(this)) return Node_NULL;
+    return this.interface->copy(this.object, alc);
 }

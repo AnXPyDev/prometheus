@@ -52,6 +52,16 @@ bool QualifierType_match(void *vthis, Type other) {
     return Type_match(this->T, other);
 }
 
+Hash QualifierType_hash(void *vthis) {
+    return Hash_combine(
+        Hash_fromIntPtr((intptr_t)&QualifierType_hash),
+        Hash_combine(
+            Qualifier_hash(this->Q),
+            Type_hash(this->T)
+        )
+    );
+}
+
 #undef this
 
 const IType IType_QualifierType = {
@@ -60,7 +70,8 @@ const IType IType_QualifierType = {
     .copy = &QualifierType_copy,
     .destroy = &QualifierType_destroy,
     .equal = &QualifierType_equal,
-    .match = &QualifierType_match
+    .match = &QualifierType_match,
+    .hash = &QualifierType_hash
 };
 
 Type QualifierType_upcast(QualifierType *this) {
@@ -78,4 +89,16 @@ Type Type_strip(Type this) {
 
     QualifierType *qthis = this.object;
     return Type_strip(qthis->T);
+}
+
+bool Type_matchQualifier(Type vthis, Qualifier Q) {
+    if (!Type_isQualifierType(vthis)) return false;
+    QualifierType *this = vthis.object;
+    return Qualifier_match(this->Q, Q);
+}
+
+Qualifier Type_getQualifier(Type vthis) {
+    if (!Type_isQualifierType(vthis)) return Qualifier_NULL;
+    QualifierType *this = vthis.object;
+    return this->Q;
 }

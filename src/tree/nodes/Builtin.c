@@ -47,6 +47,25 @@ void BuiltinNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node BuiltinNode_copy(void *vthis, Allocator alc) {
+	BuiltinNode *copy = Allocator_malloc(alc, sizeof(BuiltinNode) + sizeof(Node) * this->size);
+	copy->builtin = this->builtin;
+	copy->flags = this->flags;
+	copy->size = this->size;
+	copy->result = Type_copy(this->result, alc);
+
+	{
+		Node *it = this->nodes;
+		Node *end = it + this->size;
+		Node *dst = copy->nodes;
+
+		for (; it < end; it++) {
+			*(dst++) = Node_copy(*it, alc);
+		}
+	}
+
+	return BuiltinNode_upcast(copy);
+}
 
 #undef this
 
@@ -61,7 +80,8 @@ Printable BuiltinNode_repr(void *vthis) {
 INode INode_BuiltinNode = {
 	.repr_ = &BuiltinNode_repr,
 	.resultType = &BuiltinNode_resultType,
-	.destroy = &BuiltinNode_destroy
+	.destroy = &BuiltinNode_destroy,
+	.copy = &BuiltinNode_copy
 };
 
 Node BuiltinNode_upcast(BuiltinNode *this) {

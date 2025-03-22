@@ -1,7 +1,19 @@
 #define this ((CallNode*)vthis)
 
 void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_result) {
-	MemberList *mlargs = this->function->arguments;
+	FunctionValue funval;
+
+	if (this->dynamic) {
+		return;	
+	} else {
+		funval = this->function.sta;
+	}
+
+	if (funval.closure) {
+		return;
+	}
+
+	MemberList *mlargs = funval.function->arguments;
 	
 	if (this->argcount != mlargs->members.size) {
 		SimResult_throwMessage("CallNode: wrong number of args", vthis, context, out_result);
@@ -65,7 +77,7 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 	Allocator temp_alc = ArenaAllocator_upcast(&temp_alc_);
 
 	SimStackFrame *stackframe = SimStackFrame_create(
-		context->state->root_frame, this->function->arguments, mlinfo, temp_alc, temp_alc
+		context->state->root_frame, funval.function->arguments, mlinfo, temp_alc, temp_alc
 	);
 
 	{
@@ -90,7 +102,7 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 	};
 
 	SimResult result = SimResult_NULL;
-	SimNode_evaluate(this->function->node, &new_context, &result);
+	SimNode_evaluate(funval.function->node, &new_context, &result);
 	SimStackFrame_evaluateDeferred(stackframe, &new_context, &result);
 	if (result.control) {
 		switch (result.control) {

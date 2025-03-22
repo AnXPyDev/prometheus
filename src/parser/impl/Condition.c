@@ -1,16 +1,16 @@
 void Parser_parseCondition(TokenStream *ts, ParserContext *ctx, ParserResult *out) {
 	ParserResult res_cond = ParserResult_NULL;
-	Parser_parseNode(PARSENODE_FLAG_NO_EXPLICIT_END, ts, ctx, &res_cond);
+	res_cond.flags = PARSENODE_FLAG_NO_EXPLICIT_END;
+	Parser_parseNode(ts, ctx, &res_cond);
 	if (Parser_checkfwd(&res_cond, out)) return;
 	
 	ParserResult res_true = ParserResult_NULL;
-	Parser_parseNode(PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END, ts, ctx, &res_true);
+	res_true.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END;
+	Parser_parseNode(ts, ctx, &res_true);
 	if (Parser_checkfwd(&res_true, out)) return;
 
 	{
 		Token *token = TokenStream_probe(ts);
-
-		PrintFmt(g_os_stderr, "TOKENTYPE: {}\n", Token_repr(token));
 
 		switch (token->type) {
 			default:;
@@ -22,7 +22,7 @@ void Parser_parseCondition(TokenStream *ts, ParserContext *ctx, ParserResult *ou
 		Vector mvps; Vector_create(&mvps, sizeof(MemberValuePair));
 		Vector_init(&mvps, 4, ctx->tmp_alc);
 
-		ParserFrame_find(ctx->frame, token->str, &mvps, ctx->tmp_alc);
+		ParserFrame_find(ctx->frame, token->str, (Vector_Alc) { &mvps, ctx->tmp_alc });
 
 		MemberValuePair *it = Vector_begin(&mvps);
 		MemberValuePair *end = Vector_end(&mvps);
@@ -44,7 +44,8 @@ void Parser_parseCondition(TokenStream *ts, ParserContext *ctx, ParserResult *ou
 
 	has_else:;
 	ParserResult res_false = ParserResult_NULL;
-	Parser_parseNode(PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END, ts, ctx, &res_false);
+	res_false.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END;
+	Parser_parseNode(ts, ctx, &res_false);
 	if (Parser_checkfwd(&res_false, out)) return;
 
 	Node else_node = res_false.node;
@@ -53,7 +54,7 @@ void Parser_parseCondition(TokenStream *ts, ParserContext *ctx, ParserResult *ou
 		else_node = Node_NULL;
 	}
 
-	out->node = ConditionNode_create(res_cond.node, res_true.node, else_node, ctx->state->program_alc);
+	out->node = ConditionNode_create(res_cond.node, res_true.node, else_node, ctx->program_alc);
 }
 
 #define this ((ConditionNode*)vthis)

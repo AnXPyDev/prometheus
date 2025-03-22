@@ -91,6 +91,16 @@ bool UnionQualifier_match(void *vthis, Qualifier other) {
 
 }
 
+Hash UnionQualifier_hash(void *vthis) {
+	Hash hash = Hash_fromIntPtr((intptr_t)&UnionQualifier_hash);
+	Qualifier *it = this->elements;
+	Qualifier *end = it + this->size;
+	for (; it < end; it++) {
+		hash = Hash_combine(hash, Qualifier_hash(*it));
+	}
+	return hash;
+}
+
 #undef this
 
 const IQualifier IQualifier_UnionQualifier = {
@@ -100,6 +110,7 @@ const IQualifier IQualifier_UnionQualifier = {
 	.constcast = &UnionQualifier_constcast,
 	.recast = &UnionQualifier_recast,
 	.match = &UnionQualifier_match,
+	.hash = &UnionQualifier_hash,
 };
 
 const IQualifier IQualifier_ConstUnionQualifier = {
@@ -109,6 +120,7 @@ const IQualifier IQualifier_ConstUnionQualifier = {
 	.constcast = &UnionQualifier_constcast,
 	.recast = &UnionQualifier_recast,
 	.match = &UnionQualifier_match,
+	.hash = &UnionQualifier_hash,
 };
 
 Qualifier UnionQualifier_upcast(UnionQualifier *this) {

@@ -1,14 +1,12 @@
-#define FLAG(s) PARSENODE_FLAG_##s
-
 enum {
-	FLAG(NONE) = 0,
-	FLAG(NO_EXPLICIT_END) = 1 << 0,
-	FLAG(NO_CONSUME_EXPLICIT_END) = 1 << 1,
-	FLAG(NO_DECLARE) = 1 << 2,
-	FLAG(NO_EVALUATE) = 1 << 3,
-	FLAG(MUST_EVALUATE) = 1 << 4,
+	PARSENODE_FLAG_NO_EXPLICIT_END = 1 << 0,
+	PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END = 1 << 1,
+	PARSENODE_FLAG_NO_DECLARE = 1 << 2,
+	PARSENODE_FLAG_NO_EVALUATE = 1 << 3,
+	PARSENODE_FLAG_MUST_EVALUATE = 1 << 4,
+	PARSENODE_FLAG_NO_MARCH = 1 << 5,
+	PARSENODE_FLAG_ALLOW_INTRIN = 1 << 6,
+	PARSENODE_FLAG_DEFER_DECLARATION = 1 << 7
 };
 
-#undef FLAG
-
-void Parser_parseNode(int flags, TokenStream*, ParserContext*, ParserResult*);
+void Parser_parseNode(TokenStream*, ParserContext*, ParserResult*);

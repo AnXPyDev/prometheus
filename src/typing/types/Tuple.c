@@ -24,6 +24,12 @@ TupleType *TupleType_alloc(Size size, Allocator alc) {
 #define this ((TupleType*)vthis)
 
 void Printable_TupleType_print(void *vthis, OutStream os, StringView fmt) {
+
+	if (this->size == 0) {
+		OutStream_puts(os, "<>");
+		return;
+	}
+
 	OutStream_puts(os, "<");
 	Type *end = this->elements + this->size;
 	Type *it;
@@ -87,6 +93,17 @@ bool TupleType_match(void *vthis, Type vother) {
 	return true;
 }
 
+Hash TupleType_hash(void *vthis) {
+	Hash hash = Hash_fromIntPtr((intptr_t)&TupleType_hash);
+	Type *end = this->elements + this->size;
+
+	for (Type *it = this->elements; it < end; it++) {
+		hash = Hash_combine(hash, Type_hash(*it));
+	}
+
+	return hash;
+}
+
 void ConstTupleType_destroy(void *vthis, Allocator alc) {}
 
 Type TupleType_constcast(void *vthis) {
@@ -112,6 +129,7 @@ const IType IType_TupleType = {
 	.match = &TupleType_match,
 	.constcast = &TupleType_constcast,
 	.recast = &TupleType_recast,
+	.hash = &TupleType_hash
 };
 
 const IType IType_ConstTupleType = {
@@ -123,6 +141,7 @@ const IType IType_ConstTupleType = {
 	.match = &TupleType_match,
 	.constcast = &TupleType_constcast,
 	.recast = &TupleType_recast,
+	.hash = &TupleType_hash
 };
 
 Type TupleType_upcast(TupleType *this) {

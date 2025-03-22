@@ -1,13 +1,27 @@
 typedef struct {
-	Function *function;
+	bool dynamic;
+	union {
+		FunctionValue sta;
+		Node dyn;
+	} function;
 	Size argcount;
 	Node arguments[];
 } CallNode;
 
 Node CallNode_upcast(CallNode*);
-Node CallNode_create(Function *function, Array arguments, Allocator alc) {
+Node CallNode_create(FunctionValue function, Array arguments, Allocator alc) {
 	CallNode *this = Allocator_malloc(alc, sizeof(CallNode) + sizeof(Node) * arguments.size);
-	this->function = function;
+	this->function.sta = function; 
+	this->dynamic = false;
+	this->argcount = arguments.size;
+	memcpy(this->arguments, arguments.data, sizeof(Node) * this->argcount);
+	return CallNode_upcast(this);
+}
+
+Node CallNode_createDyn(Node dyn, Array arguments, Allocator alc) {
+	CallNode *this = Allocator_malloc(alc, sizeof(CallNode) + sizeof(Node) * arguments.size);
+	this->function.dyn = dyn;
+	this->dynamic = true;
 	this->argcount = arguments.size;
 	memcpy(this->arguments, arguments.data, sizeof(Node) * this->argcount);
 	return CallNode_upcast(this);
@@ -16,7 +30,9 @@ Node CallNode_create(Function *function, Array arguments, Allocator alc) {
 #define this ((CallNode*)vthis)
 
 void CallNode_print(void *vthis, OutStream os, StringView fmt) {
-	OutStream_puts(os, "Call((");
+	OutStream_puts(os, "Call(");
+
+	if (this->argcount == 0) goto skip_args;
 
 	Node *it = this->arguments;
 	Node *end = it + this->argcount;
@@ -26,11 +42,23 @@ void CallNode_print(void *vthis, OutStream os, StringView fmt) {
 	}
 	Printable_print(Node_repr(*it), os, BufferView_NULL);
 
-	PrintFmt(os, " => {%p})", repr(void*, this->function));
+	if (0) skip_args: {
+		OutStream_puts(os, "()");
+	}
+
+	PrintFmt(os, " => {})", 
+		this->dynamic ? Node_repr(this->function.dyn) : FunctionValue_repr(&this->function.sta)
+	);
 }
 
 Type CallNode_resultType(void *vthis, Allocator alc) {
-	Type T = this->function->type;
+	Type T; 
+	if (this->dynamic) {
+		T = Node_resultType(this->function.dyn, alc);
+	} else {
+		T = this->function.sta.function->type;
+	}
+
 	if (!Type_isFunctionType(T)) {
 		return Type_NULL;
 	}
@@ -52,6 +80,24 @@ void CallNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node CallNode_copy(void *vthis, Allocator alc) {
+	CallNode *copy = Allocator_malloc(alc, sizeof(CallNode) + sizeof(Node) * this->argcount);
+	copy->function = this->function;
+	copy->argcount = this->argcount;
+
+	{
+		Node *it = this->arguments;
+		Node *end = it + this->argcount;
+		Node *dst = copy->arguments;
+
+		for (; it < end; it++) {
+			*(dst++) = Node_copy(*it, alc);
+		}
+	}
+
+	return CallNode_upcast(copy);
+}
+
 #undef this
 
 const IPrintable IPrintable_CallNode = {
@@ -66,6 +112,7 @@ INode INode_CallNode = {
 	.repr_ = &CallNode_repr,
 	.resultType = &CallNode_resultType,
 	.destroy = &CallNode_destroy,
+	.copy = &CallNode_copy
 };
 
 Node CallNode_upcast(CallNode *this) {

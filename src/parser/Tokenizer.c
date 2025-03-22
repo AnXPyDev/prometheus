@@ -26,6 +26,7 @@ void Parser_tokenize(ParserInStream *in, Allocator tmp_alc, Vector *out_tokens, 
 				.pos = in->position
 			},
 		};
+		
 
 		//fprintf(stderr, "char '%c' (%d)\n", (char)c, (int)c);
 		if (ParserInStream_end(in)) goto handle_eof;
@@ -39,12 +40,31 @@ void Parser_tokenize(ParserInStream *in, Allocator tmp_alc, Vector *out_tokens, 
 		if (flags & PARSER_CHAR_STRING_DELIMITER) goto tkn_string;
 		if (flags & PARSER_CHAR_NUMERIC) goto tkn_number;
 
+		if (flags & PARSER_CHAR_NUMERIC_NEGATIVE_SIGN) goto test_negative;
+
 		Vector_pop(&buffer);	
 		ParserInStream_ungetc(in, c);
 		if (flags & PARSER_CHAR_IDENTIFIER_BEGIN) goto tkn_id;
 
 		fprintf(stderr, "unhandled char '%c' (%d)\n", (char)c, (int)c);
 		goto handle_eof;
+	}
+
+	test_negative: {
+		ParserChar nc = ParserInStream_getc(in);
+		if (ParserInStream_end(in)) {
+			Vector_pop(&buffer);
+			ParserInStream_ungetc(in, c);
+			goto tkn_id;
+		}
+
+		int flags = CHAR_FLAGS(ParserChar_toChar(c));
+		if (flags & PARSER_CHAR_NUMERIC) goto tkn_number;
+
+		ParserInStream_ungetc(in, nc);
+		ParserInStream_ungetc(in, c);
+		Vector_pop(&buffer);
+		goto tkn_id;
 	}
 
 
@@ -76,11 +96,6 @@ void Parser_tokenize(ParserInStream *in, Allocator tmp_alc, Vector *out_tokens, 
 
 	tkn_restrict: {
 		token.type = g_Parser_RestrictTypes[(int)ParserChar_toChar(c)];
-		goto push_token;
-	}
-
-	tkn_implicit_end: {
-		token.type = TOKEN_TYPE_IMPLICIT_END;
 		goto push_token;
 	}
 

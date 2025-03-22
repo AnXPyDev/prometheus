@@ -1,10 +1,23 @@
 void Parser_parseControl(ESimControlSignal signal, TokenStream *ts, ParserContext *ctx, ParserResult *out) {
 	ParserResult result = ParserResult_NULL;
-	Parser_parseNode(0, ts, ctx, &result);
 
+	Token *tkn = TokenStream_probe(ts);
+	switch (tkn->type) {
+		case TOKEN_TYPE_END:
+		case TOKEN_TYPE_INPUT_END:
+		case TOKEN_TYPE_LIST_DELIMITER:
+		case TOKEN_TYPE_BRACE_CLOSE:
+		case TOKEN_TYPE_SBRACE_CLOSE:
+		case TOKEN_TYPE_CBRACE_CLOSE:
+			goto null_val;
+		default:;
+	}
+
+	Parser_parseNode(ts, ctx, &result);
 	if (Parser_checkfwd(&result, out)) return;
 
-	out->node = ControlNode_create(signal, NULL, result.node, ctx->state->program_alc);
+	null_val:;
+	out->node = ControlNode_create(signal, NULL, result.node, ctx->program_alc);
 }
 
 #define this ((ControlNode*)vthis)

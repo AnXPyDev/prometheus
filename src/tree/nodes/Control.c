@@ -28,6 +28,10 @@ void ControlNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node ControlNode_copy(void *vthis, Allocator alc) {
+	return ControlNode_create(this->signal, this->target, Node_copy(this->value, alc), alc);
+}
+
 #undef this
 
 const IPrintable IPrintable_ControlNode = {
@@ -41,7 +45,8 @@ Printable ControlNode_repr(void *vthis) {
 INode INode_ControlNode = {
 	.repr_ = &ControlNode_repr,
 	.resultType = &ControlNode_resultType,
-	.destroy = &ControlNode_destroy
+	.destroy = &ControlNode_destroy,
+	.copy = &ControlNode_copy
 };
 
 Node ControlNode_upcast(ControlNode *this) {

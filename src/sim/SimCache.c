@@ -1,6 +1,6 @@
 void SimCache_create(SimCache *this, Allocator alc) {
 	this->alc = alc;
-	HashMap_create(&this->memberlists, sizeof(SimMemberListInfo*));
+	this->memberlists = HashMap_create(32, alc);
 }
 
 #define MEMALIGN(x) memalign((x), SIM_MEMORY_ALIGNMENT)
@@ -37,17 +37,38 @@ SimMemberListInfo *SimMemberListInfo_create(MemberList *memberlist, Allocator al
 
 #undef MEMALIGN
 
+typedef struct {
+	MemberList *ml;
+	SimMemberListInfo *info;
+} SimCache_mlItem;
+
+bool SimCache_match_ml(void *object, void *payload) {
+	SimCache_mlItem *item = object;
+	MemberList *ml = payload;
+	return item->ml == ml;
+}
+
+HashMap_Key SimCache_mlKey(MemberList *ml) {
+	return (HashMap_Key) {
+		.match = &SimCache_match_ml,
+		.payload = ml
+	};
+}
+
 SimMemberListInfo *SimCache_getMemberList(SimCache *this, MemberList *memberlist) {
-	SimMemberListInfo **infop = HashMap_ensure(
-		&this->memberlists, (BufferView) { .data = (char*)&memberlist, .size = sizeof(MemberList*) },
-		this->alc
+	bool existed;
+
+	SimCache_mlItem *item = HashMap_ensure_probe(
+		this->memberlists, Hash_fromPtr(memberlist), sizeof(SimCache_mlItem),
+		SimCache_mlKey(memberlist), &existed, this->alc 
 	);
 
-	if (!*infop) {
-		*infop = SimMemberListInfo_create(memberlist, this->alc);
+	if (!existed) {
+		item->ml = memberlist;
+		item->info = SimMemberListInfo_create(memberlist, this->alc);
 	}
 
-	return *infop;
+	return item->info;
 }
 
 Size SimMemberList_getMemberOffset(SimMemberListInfo *this, Member *member) {

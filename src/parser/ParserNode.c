@@ -14,6 +14,7 @@ void g_ParserNode_setup_extension(void) {
 	INode_SetPointerNode.pext = IParserNode_SetPointerNode;
 	INode_TakePointerNode.pext = IParserNode_TakePointerNode;
 	INode_LoopNode.pext = IParserNode_LoopNode;
+	INode_ClosureNode.pext = IParserNode_ClosureNode;
 }
 
 int ParserNode_eval_flags(Node this, ParserContext *ctx) {
@@ -56,7 +57,7 @@ SimStackFrame *ParserFrame_toSimFrame(ParserFrame *this, SimState *simstate) {
 
 void ParserNode_evaluate(Node this, int flags, ParserContext *ctx, ParserResult *out) {
 	if (flags & PARSERNODE_EVAL_FLAG_STACK) {
-		Parser_throw(ctx, NULL, PARSER_RESULT_PANIC, "Cannot evaluate with stack", out);
+		Parser_throws(ctx, NULL, PARSER_RESULT_PANIC, "Cannot evaluate with stack", out);
 		return;
 	}
 
@@ -79,14 +80,33 @@ void ParserNode_evaluate(Node this, int flags, ParserContext *ctx, ParserResult 
 	SimResult result = SimResult_NULL;
 	SimNode_evaluate(this, &simctx, &result);
 	if (result.control) {
-		Parser_throw(ctx, NULL, PARSER_RESULT_PANIC, "Eval interrupt", out);
+		SimValue value = result.value;
+		StringOutStream sos; StringOutStream_create(&sos, ctx->tmp_alc);
+		OutStream msgbuf = StringOutStream_upcast(&sos);
+
+		PrintFmt(msgbuf, "Eval interupt: {} {}", 
+			strrepr(ESimControlSignal_REPR[result.control]),
+			SimValue_repr(&result.value)
+		);
+
+		if (Type_equalPrimitive(value.type, PRIMITIVE_TYPE_MESSAGE)) {
+			OutStream_puts(msgbuf, " = \"");
+			OutStream_puts(msgbuf, *(const char**)value.data);
+			OutStream_putc(msgbuf, '"');
+		}
+		
+		Parser_throw(ctx, NULL, PARSER_RESULT_PANIC, StringOutStream_view(&sos), out);
+
+		StringOutStream_destroy(&sos);
 		return;
 	}
 
+	/*
 	if (SimValue_isNull(result.value)) {
-		Parser_throw(ctx, NULL, PARSER_RESULT_PANIC, "Eval null", out);
+		Parser_throws(ctx, NULL, PARSER_RESULT_PANIC, "Eval null", out);
 		return;
 	}
+	*/
 
-	out->node = ValueNode_create(result.value.type, result.value.data, ctx->state->program_alc);
+	out->node = ValueNode_create(result.value.type, result.value.data, ctx->program_alc);
 }

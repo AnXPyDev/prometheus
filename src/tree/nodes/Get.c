@@ -24,6 +24,10 @@ void GetNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node GetNode_copy(void *vthis, Allocator alc) {
+	return GetNode_create(this->member, alc);
+}
+
 #undef this
 
 const IPrintable IPrintable_GetNode = {
@@ -38,6 +42,7 @@ INode INode_GetNode = {
 	.repr_ = &GetNode_repr,
 	.resultType = &GetNode_resultType,
 	.destroy = &GetNode_destroy,
+	.copy = &GetNode_copy
 
 	// simext initialized at runtime
 };

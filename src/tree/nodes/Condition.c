@@ -40,6 +40,15 @@ void ConditionNode_destroy(void *vthis, Allocator alc)  {
 	Allocator_free(alc, vthis);
 }
 
+Node ConditionNode_copy(void *vthis, Allocator alc) {
+	return ConditionNode_create(
+		Node_copy(this->condition, alc),
+		Node_copy(this->node_true, alc),
+		Node_copy(this->node_false, alc),
+		alc
+	);
+}
+
 #undef this
 
 const IPrintable IPrintable_ConditionNode = {
@@ -54,6 +63,7 @@ INode INode_ConditionNode = {
 	.repr_ = &ConditionNode_repr,
 	.resultType = &ConditionNode_resultType,
 	.destroy = &ConditionNode_destroy,
+	.copy = &ConditionNode_copy
 };
 
 Node ConditionNode_upcast(ConditionNode *this) {

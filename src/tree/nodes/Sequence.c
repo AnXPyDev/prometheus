@@ -36,6 +36,21 @@ void SequenceNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node SequenceNode_copy(void *vthis, Allocator alc) {
+	SequenceNode *copy = Allocator_malloc(alc, sizeof(SequenceNode) + sizeof(Node) * this->size);
+	{
+		Node *it = this->nodes;
+		Node *end = it + this->size;
+		Node *dst = copy->nodes;
+
+		for (; it < end; it++) {
+			*(dst++) = Node_copy(*it, alc);
+		}
+	}
+
+	return SequenceNode_upcast(copy);
+}
+
 #undef this
 
 const IPrintable IPrintable_SequenceNode = {
@@ -50,6 +65,7 @@ INode INode_SequenceNode = {
 	.repr_ = &SequenceNode_repr,
 	.resultType = &SequenceNode_resultType,
 	.destroy = &SequenceNode_destroy,
+	.copy = &SequenceNode_copy
 };
 
 Node SequenceNode_upcast(SequenceNode *this) {

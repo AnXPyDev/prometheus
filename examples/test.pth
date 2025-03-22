@@ -1,0 +1,13 @@
+int mul(int x, int y) {
+	int res = 0;
+	loop {
+		if (x) 1 else break 1;
+		res = add(res, y)	
+	}
+}
+
+int(int) make-multiplier(int *x) closure {
+	int x = *x;
+} int (int v) {
+	
+}

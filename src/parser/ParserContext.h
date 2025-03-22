@@ -1,11 +1,14 @@
 typedef struct {
-	Allocator program_alc;
-	OutStream logstream;
+	Allocator alc;
+	MemberListAllocator *mla;
 	ParserFrame *root_frame;
+	bool error;
 } ParserState;
 
 typedef struct {
 	ParserState *state;
 	ParserFrame *frame;
+	OutStream logstream;
+	Allocator program_alc;
 	Allocator tmp_alc;
 } ParserContext;

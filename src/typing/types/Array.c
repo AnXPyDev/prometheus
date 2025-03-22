@@ -49,6 +49,16 @@ bool ArrayType_equal(void *vthis, void *vother) {
     return Type_equal(this->T, other->T);
 }
 
+Hash ArrayType_hash(void *vthis) {
+    return Hash_combine(
+        Hash_fromIntPtr((intptr_t)&ArrayType_hash),
+        Hash_combine(
+            Hash_fromSize(this->size),
+            Type_hash(this->T)
+        )
+    );
+}
+
 #undef this
 
 
@@ -58,6 +68,7 @@ const IType IType_ArrayType = {
     .copy = &ArrayType_copy,
     .destroy = &ArrayType_destroy,
     .equal = &ArrayType_equal,
+    .hash = &ArrayType_hash
 };
 
 Type ArrayType_upcast(ArrayType *this) {

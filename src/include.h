@@ -12,11 +12,14 @@
 #include "sim/SimResult.h"
 #include "sim/SimNode.h"
 
+#include "parser/MemberListAllocator.c"
 #include "parser/ParserFrame.h"
 #include "parser/ParserContext.h"
 #include "parser/ParserNode.h"
 
 #include "tree/Node.c"
+
+#include "tree/Function.h"
 
 #include "typing/types/Primitive.c"
 #include "typing/types/Pointer.c"
@@ -46,6 +49,7 @@
 #include "tree/nodes/Catch.c"
 #include "tree/nodes/Call.c"
 #include "tree/nodes/Loop.c"
+#include "tree/nodes/Closure.c"
 
 
 #include "typing/qualifiers/Primitive.c"
@@ -88,8 +92,12 @@
 #include "parser/ParserResult.h"
 #include "parser/ParserResult.c"
 #include "parser/ParserNode.c"
+#include "parser/Intrin.h"
 
 #include "parser/impl/Node.h"
+
+#include "parser/ParserCache.c"
+
 #include "parser/impl/Number.c"
 #include "parser/impl/String.c"
 #include "parser/impl/Control.c"
@@ -98,8 +106,10 @@
 #include "parser/impl/Call.c"
 #include "parser/impl/Catch.c"
 #include "parser/impl/Condition.c"
+#include "parser/impl/Function.c"
 #include "parser/impl/Loop.c"
 #include "parser/impl/Node.c"
+#include "parser/impl/Closure.c"
 #include "parser/impl/nodes.c"
 
 #include "parser/Builtin.c"

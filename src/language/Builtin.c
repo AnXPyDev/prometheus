@@ -1,22 +1,19 @@
 void Language_setupBuiltinType(ParserFrame *frame, Allocator alc, StringView id, Type T) {
-	Type *v = Allocator_malloc(alc, sizeof(Type));
-	*v = T;
-
-	*ParserFrame_setupMemberWithValue(
+	*(Type*)ParserFrame_setupMemberWithValue(
 		frame, id, PrimitiveType_upcast(PRIMITIVE_TYPE_TYPE)
-	) = v;
+	) = T;
 }
 
 void Language_setupBuiltinFunction(ParserFrame *frame, Allocator alc, StringView id, Function *func) {
-	Function **v = Allocator_malloc(alc, sizeof(Function*));
-	*v = func;
-	*ParserFrame_setupMemberWithValue(
+	*(FunctionValue*)ParserFrame_setupMemberWithValue(
 		frame, id, func->type
-	) = v;
+	) = (FunctionValue) { .function = func, .closure = NULL };
 }
 
-void Language_setupBuiltins(ParserFrame *frame, Allocator alc) {
-	// void
+void Language_setupBuiltins(ParserContext *ctx) {
+	ParserFrame *frame = ctx->frame;
+	Allocator alc = ctx->program_alc;
+	MemberListAllocator *mla = ctx->state->mla;
 
 	Language_setupBuiltinType(frame, alc,
 		strview("void"), PrimitiveType_upcast(PRIMITIVE_TYPE_VOID)
@@ -50,23 +47,23 @@ void Language_setupBuiltins(ParserFrame *frame, Allocator alc) {
 	);
 
 	Language_setupBuiltinFunction(frame, alc,
-		strview("print"), Language_builtin_print_toFunction(alc)
+		strview("print"), Language_builtin_print_toFunction(mla, alc)
 	);
 	
 	Language_setupBuiltinFunction(frame, alc,
-		strview("printdump"), Language_builtin_printdump_toFunction(alc)
+		strview("printdump"), Language_builtin_printdump_toFunction(mla, alc)
 	);
 	
 	Language_setupBuiltinFunction(frame, alc,
-		strview("add"), Language_builtin_sum_int_toFunction(alc)
+		strview("add"), Language_builtin_sum_int_toFunction(mla, alc)
 	);
 
 	Language_setupBuiltinFunction(frame, alc,
-		strview("neg"), Language_builtin_neg_int_toFunction(alc)
+		strview("neg"), Language_builtin_neg_int_toFunction(mla, alc)
 	);
 	
 	Language_setupBuiltinFunction(frame, alc,
-		strview("@"), Language_builtin_ptrtype_toFunction(alc)
+		strview("@"), Language_builtin_ptrtype_toFunction(mla, alc)
 	);
 
 }

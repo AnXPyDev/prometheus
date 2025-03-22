@@ -54,6 +54,13 @@ bool PrimitiveQualifier_match(void *vthis, Qualifier other) {
 
 void PrimitiveQualifier_destroy(void *vthis, Allocator alc) {}
 
+Hash PrimitiveQualifier_hash(void *vthis) {
+    return Hash_combine(
+        Hash_fromIntPtr((intptr_t)&PrimitiveQualifier_hash),
+        Hash_fromInt((int)this)
+    );
+}
+
 #undef this
 
 const IPrintable IPrintable_PrimitiveQualifier = {
@@ -72,6 +79,7 @@ const IQualifier IQualifier_PrimitiveQualifier = {
     .copy = &PrimitiveQualifier_copy,
     .destroy = &PrimitiveQualifier_destroy,
     .match = &PrimitiveQualifier_match,
+    .hash = &PrimitiveQualifier_hash
 };
 
 Qualifier PrimitiveQualifier_upcast(EPrimitiveQualifier T) {

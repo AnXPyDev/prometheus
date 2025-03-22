@@ -32,6 +32,10 @@ void CatchNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node CatchNode_copy(void *vthis, Allocator alc) {
+	return CatchNode_create(this->T, Node_copy(this->value, alc), alc);
+}
+
 #undef this
 
 const IPrintable IPrintable_CatchNode = {
@@ -45,7 +49,8 @@ Printable CatchNode_repr(void *vthis) {
 INode INode_CatchNode = {
 	.repr_ = &CatchNode_repr,
 	.resultType = &CatchNode_resultType,
-	.destroy = &CatchNode_destroy
+	.destroy = &CatchNode_destroy,
+	.copy = &CatchNode_copy
 };
 
 Node CatchNode_upcast(CatchNode *this) {

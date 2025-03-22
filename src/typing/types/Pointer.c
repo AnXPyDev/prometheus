@@ -55,6 +55,13 @@ bool PointerType_match(void *vthis, Type other) {
     return Type_match(this->T, pother->T);
 }
 
+Hash PointerType_hash(void *vthis) {
+    return Hash_combine(
+        Hash_fromIntPtr((intptr_t)&PointerType_hash),
+        Type_hash(this->T)
+    );
+}
+
 #undef this
 
 const IType IType_PointerType = {
@@ -63,7 +70,8 @@ const IType IType_PointerType = {
     .copy = &PointerType_copy,
     .destroy = &PointerType_destroy,
     .equal = &PointerType_equal,
-    .match = &PointerType_match
+    .match = &PointerType_match,
+    .hash = &PointerType_hash
 };
 
 Type PointerType_upcast(PointerType *this) {

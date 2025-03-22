@@ -35,6 +35,10 @@ void GetPointerNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node GetPointerNode_copy(void *vthis, Allocator alc) {
+	return GetPointerNode_create(Node_copy(this->pointer, alc), alc);
+}
+
 #undef this
 
 const IPrintable IPrintable_GetPointerNode = {
@@ -49,6 +53,7 @@ INode INode_GetPointerNode = {
 	.repr_ = &GetPointerNode_repr,
 	.resultType = &GetPointerNode_resultType,
 	.destroy = &GetPointerNode_destroy,
+	.copy = &GetPointerNode_copy
 };
 
 Node GetPointerNode_upcast(GetPointerNode *this) {

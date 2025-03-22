@@ -87,13 +87,25 @@ bool UnionType_equal(void *vthis, void *vother) {
 	return true;
 }
 
+Hash UnionType_hash(void *vthis) {
+	Hash hash = Hash_fromIntPtr((intptr_t)&UnionType_hash);
+	Type *end = this->elements + this->size;
+
+	for (Type *it = this->elements; it < end; it++) {
+		hash = Hash_combine(hash, Type_hash(*it));
+	}
+
+	return hash;
+}
+
 #undef this
 
 const IType IType_UnionType = {
     .repr_ = &UnionType_repr,
     .info = &UnionType_info,
     .copy = &UnionType_copy,
-    .destroy = &UnionType_destroy
+    .destroy = &UnionType_destroy,
+	 .hash = &UnionType_hash,
 };
 
 Type UnionType_upcast(UnionType *this) {

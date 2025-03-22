@@ -32,6 +32,10 @@ void ValueNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node ValueNode_copy(void *vthis, Allocator alc) {
+	return ValueNode_create(this->T, this->data, alc);
+}
+
 #undef this
 
 const IPrintable IPrintable_ValueNode = {
@@ -45,7 +49,8 @@ Printable ValueNode_repr(void *vthis) {
 INode INode_ValueNode = {
 	.repr_ = &ValueNode_repr,
 	.resultType = &ValueNode_resultType,
-	.destroy = &ValueNode_destroy
+	.destroy = &ValueNode_destroy,
+	.copy = &ValueNode_copy
 };
 
 Node ValueNode_upcast(ValueNode *this) {

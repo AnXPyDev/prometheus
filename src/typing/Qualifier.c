@@ -7,6 +7,7 @@ typedef struct {
     struct Qualifier (*constcast)(void *this);
     struct Qualifier (*recast)(void *this);
     bool (*match)(void *this, struct Qualifier other);
+    Hash (*hash)(void *this);
 } IQualifier;
 
 typedef struct Qualifier {
@@ -59,4 +60,9 @@ bool Qualifier_match(Qualifier this, Qualifier other) {
     if (!this.interface->match) return false;
 
     return this.interface->match(this.object, other);
+}
+
+Hash Qualifier_hash(Qualifier this) {
+    if (!this.interface->hash) return Hash_NULL;
+    return this.interface->hash(this.object);
 }

@@ -16,6 +16,7 @@ typedef enum {
 
     // parser
     PRIMITIVE_TYPE_KEYWORD,
+    PRIMITIVE_TYPE_PARSER_INTRIN,
 
     // primitive
     PRIMITIVE_TYPE_INT,
@@ -43,6 +44,7 @@ const char *EPrimitiveType_REPR[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_MESSAGE] = "PRIMITIVE_TYPE_MESSAGE",
     
     [PRIMITIVE_TYPE_KEYWORD] = "PRIMITIVE_TYPE_KEYWORD",
+    [PRIMITIVE_TYPE_PARSER_INTRIN] = "PRIMITIVE_TYPE_PARSER_INTRIN",
 
     [PRIMITIVE_TYPE_INT] = "PRIMITIVE_TYPE_INT",
     [PRIMITIVE_TYPE_BOOL] = "PRIMITIVE_TYPE_BOOL",
@@ -67,6 +69,7 @@ const char *EPrimitiveType_PRETTY[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_MESSAGE] = "<message>",
     
     [PRIMITIVE_TYPE_KEYWORD] = "<keyword>",
+    [PRIMITIVE_TYPE_PARSER_INTRIN] = "<parser_intrin>",
 
     [PRIMITIVE_TYPE_INT] = "int",
     [PRIMITIVE_TYPE_BOOL] = "bool",
@@ -91,6 +94,7 @@ const TypeInfo EPrimitiveType_INFO[PRIMITIVE_TYPE__END] = {
     [PRIMITIVE_TYPE_MESSAGE] = { .valid = true, .abstract = true, .size = sizeof(const char*) },
     
     [PRIMITIVE_TYPE_KEYWORD] = { .valid = true, .abstract = true, .size = sizeof(int) },
+    [PRIMITIVE_TYPE_PARSER_INTRIN] = { .valid = true, .abstract = true, .size = sizeof(void*) },
 
     [PRIMITIVE_TYPE_INT] = { .valid = true, .abstract = false, .size = sizeof(int) },
     [PRIMITIVE_TYPE_BOOL] = { .valid = true, .abstract = false, .size = sizeof(bool) },
@@ -141,6 +145,10 @@ bool PrimitiveType_match(void *vthis, Type other) {
     return false;
 }
 
+Hash PrimitiveType_hash(void *vthis) {
+    return Hash_combine(Hash_fromIntPtr((intptr_t)&PrimitiveType_hash), Hash_fromInt((int)this));
+}
+
 #undef this
 
 const IType IType_PrimitiveType = {
@@ -149,7 +157,8 @@ const IType IType_PrimitiveType = {
     .copy = &PrimitiveType_copy,
     .destroy = &PrimitiveType_destroy,
     .equal = &PrimitiveType_equal,
-    .match = &PrimitiveType_match
+    .match = &PrimitiveType_match,
+    .hash = &PrimitiveType_hash
 };
 
 Type PrimitiveType_upcast(EPrimitiveType T) {

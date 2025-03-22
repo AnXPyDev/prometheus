@@ -1,6 +1,6 @@
 typedef struct ParserFrame {
 	struct ParserFrame *parent;
 	MemberList *memberlist;
-	HashMap values;
+	HashMap *values;
 	Allocator alc;
 } ParserFrame;

@@ -27,6 +27,10 @@ void CastNode_destroy(void *vthis, Allocator alc) {
 	Allocator_free(alc, vthis);
 }
 
+Node CastNode_copy(void *vthis, Allocator alc) {
+	return CastNode_create(this->T, Node_copy(this->value, alc), alc);
+}
+
 #undef this
 
 const IPrintable IPrintable_CastNode = {
@@ -40,7 +44,8 @@ Printable CastNode_repr(void *vthis) {
 INode INode_CastNode = {
 	.repr_ = &CastNode_repr,
 	.resultType = &CastNode_resultType,
-	.destroy = &CastNode_destroy
+	.destroy = &CastNode_destroy,
+	.copy = &CastNode_copy,
 };
 
 Node CastNode_upcast(CastNode *this) {

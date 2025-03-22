@@ -18,8 +18,8 @@ void Language_builtin_ptrtype_(Array args, SimContext *ctx, SimResult *out) {
 
 Sim_builtin_fn_t Language_builtin_ptrtype = &Language_builtin_ptrtype_;
 
-Function *Language_builtin_ptrtype_toFunction(Allocator alc) {
-	MemberList *args = MemberList_create(alc);
+Function *Language_builtin_ptrtype_toFunction(MemberListAllocator *mla, Allocator alc) {
+	MemberList *args = MemberList_create(mla);
 	Member *arg_val = MemberList_add(
 		args, strview("T"), Qualifier_NULL, PrimitiveType_upcast(PRIMITIVE_TYPE_TYPE)
 	);
