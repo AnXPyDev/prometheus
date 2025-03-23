@@ -3,6 +3,7 @@
 #include "decl.h"
 #include "Function.h"
 #include "Set.h"
+#include "Qualifier.h"
 
 #include "Number.c"
 #include "String.c"

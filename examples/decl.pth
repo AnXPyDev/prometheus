@@ -1,14 +1,1 @@
-void repeat-message(ByteSpan message, int n) {
-	loop {
-		print(message); print("\n");
-		if (n = add(n, neg(1))) () else break;
-	}
-}
-
-int multiply(int n, int v) {
-	int acc = 0;
-	acc = n;
-	return acc;
-}
-
-repeat-message("hello", multiply(5, 5));
+const @(int) x;

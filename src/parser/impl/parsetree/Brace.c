@@ -12,22 +12,18 @@ bool ParseTree_sub_braced(
 		return false;
 	}
 
-	ParseTreeState_NODE *state_node = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
-	state_node->header.type = PARSETREE_STATE_NODE;
-	state_node->node = result.node;
-
-	*statep = (ParseTreeState*)state_node;
-	return true;
+	return ParseTree_extendStateByNode(this, statep, result.node);
 }
 
 void ParseTree_branch_brace(ParseTree *this, Token *token, ParseTreeState *state) {
 	switch (state->type) {
-		default: return;
 		case PARSETREE_STATE_FUNCTION: goto handle_call;
-		case PARSETREE_STATE_NONE: goto handle_braced;
 		case PARSETREE_STATE_TYPE: goto handle_fanon;
 		case PARSETREE_STATE_DECLARATION: goto handle_fdecl;
+		//case PARSETREE_STATE_NONE: goto handle_braced;
+		default: goto handle_braced;
 	}
+		
 
 	if (0) handle_braced: {
 		ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub));

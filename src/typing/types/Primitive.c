@@ -28,7 +28,9 @@ typedef enum {
     PRIMITIVE_TYPE_I8,
     PRIMITIVE_TYPE_U8,
 
-    PRIMITIVE_TYPE__END
+    PRIMITIVE_TYPE__END,
+
+    PRIMTIIVE_TYPE_NOT_PRIMITIVE
 } EPrimitiveType;
 
 const char *EPrimitiveType_REPR[PRIMITIVE_TYPE__END] = {
@@ -168,12 +170,6 @@ Type PrimitiveType_upcast(EPrimitiveType T) {
     };
 }
 
-EPrimitiveType Type_asPrimitive(Type this) {
-    return (EPrimitiveType)(intptr_t)this.object;
-}
-
-
-
 bool Type_isPrimitive(Type this) {
     return this.interface == &IType_PrimitiveType;
 }
@@ -181,4 +177,9 @@ bool Type_isPrimitive(Type this) {
 bool Type_equalPrimitive(Type this, EPrimitiveType T) {
     if (!Type_isPrimitive(this)) return false;
     return (EPrimitiveType)(intptr_t)this.object == T;
+}
+
+EPrimitiveType Type_asPrimitive(Type this) {
+    if (!Type_isPrimitive(this)) return PRIMTIIVE_TYPE_NOT_PRIMITIVE;
+    return (EPrimitiveType)(intptr_t)this.object;
 }

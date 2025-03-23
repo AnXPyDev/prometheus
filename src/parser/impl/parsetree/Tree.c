@@ -1,3 +1,32 @@
+bool ParseTree_extendStateByNode(ParseTree *this, ParseTreeState **statep, Node node) {
+	ParseTreeState *state = *statep;
+
+	switch (state->type) {
+		case PARSETREE_STATE_NONE:;
+			goto discard_previous;
+		default: goto extend_previous;
+	}
+
+	if (0) extend_previous: {
+		ParseTreeState_EXTEND_NODE *state_ext =
+			ParseTree_stalloc(this, sizeof(ParseTreeState_EXTEND_NODE));
+		state_ext->state_node.header.type = PARSETREE_STATE_EXTEND_NODE;
+		state_ext->state_node.node = node;
+		state_ext->previous = state;
+		*statep = (ParseTreeState*)state_ext;
+	}
+
+	if (0) discard_previous: {
+		ParseTreeState_NODE *state_node =
+			ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
+		state_node->header.type = PARSETREE_STATE_NODE;
+		state_node->node = node;
+		*statep = (ParseTreeState*)state_node;
+	}
+	
+	return true;
+}
+
 ParseTreeOption *ParseTree_evaluateOptions(ParseTree *this, Token *here, Array options) {
 	if (options.size == 0) {
 		return NULL;
@@ -163,7 +192,12 @@ bool ParseTree_resolveResult(ParseTree *this, Token *here, ParseTreeState *state
 	}
 
 	if (0) handle_qualifier: {
-
+		ParseTreeState_QUALIFIER *state_qual = (ParseTreeState_QUALIFIER*)state;
+		Qualifier qualifier = Qualifier_copy(state_qual->qualifier, this->ctx->program_alc);
+		node = ValueNode_create(
+			PrimitiveType_upcast(PRIMITIVE_TYPE_QUALIFIER),
+			(char*)&qualifier, this->ctx->program_alc
+		);
 	}
 
 	if (0) handle_identifier: {

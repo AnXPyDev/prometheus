@@ -30,8 +30,10 @@ void ParseTree_branch_identifier(ParseTree *this, Token *token, ParseTreeState *
 
 void ParseTree_dispatch_identifier(ParseTree *this, Token *token, ParseTreeState *state) {
 	#define MATCH_TYPE_PQUAL(T, Q) Qualifier_match(Type_getQualifier(T), PrimitiveQualifier_upcast(PRIMITIVE_QUALIFIER_##Q))
-	#define IS_UNARY(M) MATCH_TYPE_PQUAL((M)->type, OPERATOR_UNARY)
-	#define IS_BINARY(M) MATCH_TYPE_PQUAL((M)->type, OPERATOR_BINARY)
+	#define MATCH_PQUAL(MQ, Q) Qualifier_match(MQ, PrimitiveQualifier_upcast(PRIMITIVE_QUALIFIER_##Q))
+
+	#define IS_UNARY(M) MATCH_PQUAL((M)->qualifier, OPERATOR_UNARY)
+	#define IS_BINARY(M) MATCH_PQUAL((M)->qualifier, OPERATOR_BINARY)
 
 	Vector mvps; Vector_create(&mvps, sizeof(MemberValuePair));
 	ParserFrame_find(this->ctx->frame, token->str, (Vector_Alc) { &mvps, this->ctx->tmp_alc });
@@ -43,36 +45,52 @@ void ParseTree_dispatch_identifier(ParseTree *this, Token *token, ParseTreeState
 	MemberValuePair *it = first;
 	MemberValuePair *end = Vector_end(&mvps);
 
-	Vector funcs; Vector_create(&funcs, sizeof(FunctionValue));
+	Vector funcs; Vector_create(&funcs, sizeof(Parser_CallCandidate));
 
-	if (Type_isFunctionType(Type_strip(it->member->type))) {
+	Type FT = Type_strip(it->member->type);
+
+	if (Type_isFunctionType(FT)) {
 		if (state->type == PARSETREE_STATE_NONE && IS_UNARY(it->member)) goto op_unary;
-		if (state->type == PARSETREE_STATE_NODE && IS_BINARY(it->member)) goto op_binary;
-		if (state->type == PARSETREE_STATE_NONE) goto function;
+		if (IS_BINARY(it->member)) goto op_binary;
+		goto function;
 	}
 
 	if (0) op_unary: {
 		for (; it < end; it++) {
 			if (it->value && IS_UNARY(it->member)) {
-				*(FunctionValue*)Vector_push(&funcs, this->ctx->tmp_alc) = *(FunctionValue*)it->value;
+				*(Parser_CallCandidate*)Vector_push(&funcs, this->ctx->tmp_alc)
+					= (Parser_CallCandidate) {
+						.ft = (FunctionType*)FT.object,
+						.fv = (FunctionValue*)it->value
+					};
 			}
 		}
 		if (funcs.size == 0) goto skip_func;
+		ParseTree_branch_operator_unary(this, token, state, Vector_array(&funcs));
 	}
 
 	if (0) op_binary: {
 		for (; it < end; it++) {
 			if (it->value && IS_BINARY(it->member)) {
-				*(FunctionValue*)Vector_push(&funcs, this->ctx->tmp_alc) = *(FunctionValue*)it->value;
+				*(Parser_CallCandidate*)Vector_push(&funcs, this->ctx->tmp_alc)
+					= (Parser_CallCandidate) {
+						.ft = (FunctionType*)FT.object,
+						.fv = (FunctionValue*)it->value
+					};
 			}
 		}
 		if (funcs.size == 0) goto skip_func;
+		ParseTree_branch_operator_binary(this, token, state, Vector_array(&funcs));
 	}
 
 	if (0) function: {
 		for (; it < end; it++) {
 			if (it->value && !IS_BINARY(it->member) && !IS_UNARY(it->member)) {
-				*(FunctionValue*)Vector_push(&funcs, this->ctx->tmp_alc) = *(FunctionValue*)it->value;
+				*(Parser_CallCandidate*)Vector_push(&funcs, this->ctx->tmp_alc)
+					= (Parser_CallCandidate) {
+						.ft = (FunctionType*)FT.object,
+						.fv = (FunctionValue*)it->value
+					};
 			}
 		}
 		if (funcs.size == 0) goto skip_func;
@@ -89,5 +107,5 @@ void ParseTree_dispatch_identifier(ParseTree *this, Token *token, ParseTreeState
 	#undef IS_UNARY
 	#undef IS_BINARY
 	#undef MATCH_TYPE_PQUAL
-
+	#undef MATCH_PQUAL
 }

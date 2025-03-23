@@ -35,7 +35,7 @@ bool Parser_isFunctionDefinition(TokenStream *ts, ParserContext *ctx, ParserResu
 	return false;
 }
 
-void Parser_parseFunctionType(TokenStream *ts, ParserContext *ctx, ParserResult *out, Type RT) {
+Type Parser_parseFunctionType(TokenStream *ts, ParserContext *ctx, ParserResult *out, Type RT) {
 	Vector args; Vector_create(&args, sizeof(Type));
 	Vector_init(&args, 4, ctx->tmp_alc);
 
@@ -48,18 +48,18 @@ void Parser_parseFunctionType(TokenStream *ts, ParserContext *ctx, ParserResult 
 
 		Parser_parseNode(ts, ctx, &result);
 
-		if (Parser_checkfwd(&result, out)) return;
+		if (Parser_checkfwd(&result, out)) return Type_NULL;
 		
 		if (!Node_isValueNode(result.node)) {
 			Parser_throws(ctx, &here->src, PARSER_RESULT_PANIC, "Non parsetime expression used in function type", out);
-			return;
+			return Type_NULL;
 		}
 
 		ValueNode *val = result.node.object;
 		
 		if (!Type_equalPrimitive(val->T, PRIMITIVE_TYPE_TYPE)) {
 			Parser_throws(ctx, &here->src, PARSER_RESULT_PANIC, "Expected type while parsing function type", out);
-			return;
+			return Type_NULL;
 		}
 
 		*(Type*)Vector_push(&args, ctx->tmp_alc) = *(Type*)val->data;
@@ -68,7 +68,7 @@ void Parser_parseFunctionType(TokenStream *ts, ParserContext *ctx, ParserResult 
 		switch (token->type) {
 			default:;
 				Parser_throws(ctx, &token->src, PARSER_RESULT_PANIC, "Expected list delimiter", out);
-				return;
+				return Type_NULL;
 			case TOKEN_TYPE_BRACE_CLOSE: {
 				TokenStream_next(ts);
 				goto breakloop;
@@ -90,13 +90,11 @@ void Parser_parseFunctionType(TokenStream *ts, ParserContext *ctx, ParserResult 
 
 	Vector_destroy(&args, ctx->tmp_alc);
 
-	out->node = ValueNode_create(
-		PrimitiveType_upcast(PRIMITIVE_TYPE_TYPE),
-		(char*)&FT, ctx->program_alc
-	);
+	return FT;
+
 }
 
-void Parser_parseFunction(TokenStream *ts, ParserContext *ctx, ParserResult *out, Type RT) {
+MemberList *Parser_parseFunctionArgs(TokenStream *ts, ParserContext *ctx, ParserResult *out) {
 	MemberList *mlargs = MemberList_create(ctx->state->mla);
 
 	while (true) {
@@ -107,7 +105,7 @@ void Parser_parseFunction(TokenStream *ts, ParserContext *ctx, ParserResult *out
 
 		Parser_parseNode(ts, ctx, &result);
 
-		if (Parser_checkfwd(&result, out)) return;
+		if (Parser_checkfwd(&result, out)) return NULL;
 
 		if (Node_isNull(result.node)) goto skip;
 		
@@ -125,7 +123,7 @@ void Parser_parseFunction(TokenStream *ts, ParserContext *ctx, ParserResult *out
 
 		if (0) err_invalid_type: {
 			Parser_throws(ctx, &here->src, PARSER_RESULT_PANIC, "Non parsetime expression used in function type", out);
-			return;
+			return NULL;
 		}
 
 		skip:;
@@ -133,7 +131,7 @@ void Parser_parseFunction(TokenStream *ts, ParserContext *ctx, ParserResult *out
 		switch (token->type) {
 			default:;
 				Parser_throws(ctx, &token->src, PARSER_RESULT_PANIC, "Expected list delimiter", out);
-				return;
+				return NULL;
 			case TOKEN_TYPE_BRACE_CLOSE: {
 				TokenStream_next(ts);
 				goto breakloop;
@@ -146,7 +144,10 @@ void Parser_parseFunction(TokenStream *ts, ParserContext *ctx, ParserResult *out
 
 	}
 
+	return mlargs;
+}
 
+void Parser_parseFunctionRoot(TokenStream *ts, ParserContext *ctx, ParserResult *out, MemberList *mlargs) {
 	ParserFrame frame; ParserFrame_create(&frame, ctx->frame, mlargs, ctx->tmp_alc);
 	ParserContext fctx = *ctx;
 	fctx.frame = &frame;
@@ -157,10 +158,20 @@ void Parser_parseFunction(TokenStream *ts, ParserContext *ctx, ParserResult *out
 
 	if (Parser_checkfwd(&result, out)) return;
 
+	out->node = result.node;
+}
+
+void Parser_parseFunction(TokenStream *ts, ParserContext *ctx, ParserResult *out) {
+	ParserResult result = ParserResult_NULL;
+	MemberList *mlargs = Parser_parseFunctionArgs(ts, ctx, &result);
+	if (Parser_checkfwd(&result, out)) return;
+
+	result = ParserResult_NULL;
+	Parser_parseFunctionRoot(ts, ctx, out, mlargs);
+	if (Parser_checkfwd(&result, out)) return;
+
 	Function *function = Function_create(mlargs, result.node, ctx->program_alc);
-
 	FunctionValue fv = { .function = function, .closure = NULL };
-
 	out->node = ValueNode_create(function->type, (char*)&fv, ctx->program_alc);
 }
 
@@ -172,47 +183,60 @@ void Parser_parseFunction_anonymous(
 	if (Parser_checkfwd(&result, out)) return;
 
 	if (isdef) {
-		Parser_parseFunction(ts, ctx, out, RT);
+		Parser_parseFunction(ts, ctx, out);
 	} else {
-		Parser_parseFunctionType(ts, ctx, out, RT);
+		result = ParserResult_NULL;
+		Type FT = Parser_parseFunctionType(ts, ctx, &result, RT);
+		if (Parser_checkfwd(&result, out)) return;
+		out->node = ValueNode_create(
+			PrimitiveType_upcast(PRIMITIVE_TYPE_TYPE),
+			(char*)&FT, ctx->program_alc
+		);
 	}
 }
 
 void Parser_parseFunction_declaration(TokenStream *ts, ParserContext *ctx, ParserResult *out, ParserIntrin_DECLARATION *info) {
 	ParserResult result = ParserResult_NULL;
-	Parser_parseFunction_anonymous(ts, ctx, &result, info->type);
-
+	bool isdef = Parser_isFunctionDefinition(ts, ctx, &result);
 	if (Parser_checkfwd(&result, out)) return;
 
-	if (!Node_isValueNode(result.node)) goto err;
+	result = ParserResult_NULL;
 
-	ValueNode *val = (ValueNode*)result.node.object;
+	Member *member = NULL;
 
-	if (Type_isFunctionType(val->T)) goto handle_def;
-	else if (Type_equalPrimitive(val->T, PRIMITIVE_TYPE_TYPE)) goto handle_decl;
-	else goto err;
+	if (isdef) {
+		MemberList *mlargs = Parser_parseFunctionArgs(ts, ctx, &result);
+		if (Parser_checkfwd(&result, out)) return;
+		Type FT = Type_constcast(
+			FunctionType_create(
+				Type_constcast(MemberList_type(mlargs, ctx->program_alc)),
+				Type_constcast(Type_copy(info->type, ctx->program_alc)),
+				ctx->program_alc
+			)
+		);
 
-	if (0) handle_def: {
-		Type FT = val->T;
-		FunctionValue FV = *(FunctionValue*)val->data;
+		Function *func = Function_create_blank(mlargs, FT, ctx->program_alc);
 
-		Member *member = MemberList_add(ctx->frame->memberlist, info->identifier, info->qualifier, FT);
+		member = MemberList_add(ctx->frame->memberlist, info->identifier, info->qualifier, FT);
 
-		*(FunctionValue*)ParserFrame_ensureValue(ctx->frame, member) = FV;
+		*(FunctionValue*)ParserFrame_ensureValue(ctx->frame, member) = (FunctionValue) {
+			.function = func, .closure = NULL
+		};
+
+		result = ParserResult_NULL;
+		Parser_parseFunctionRoot(ts, ctx, &result, mlargs);
+		if (Parser_checkfwd(&result, out)) return;
+
+		func->node = result.node;
+
+	} else {
+		Type FT = Parser_parseFunctionType(ts, ctx, &result, info->type);
+		if (Parser_checkfwd(&result, out)) return;
+
+		member = MemberList_add(ctx->frame->memberlist, info->identifier, info->qualifier, FT);
 	}
 
-	out->node = result.node;
-
-	if (0) handle_decl: {
-		Type FT = *(Type*)val->data;
-		MemberList_add(ctx->frame->memberlist, info->identifier, info->qualifier, FT);
-	}
-
-	out->node = result.node;
-
-	if (0) err: {
-		Parser_throws(ctx, NULL, PARSER_RESULT_PANIC, "bad things happend :)", out);
-		return;
-	}
-
+	out->node = ValueNode_create(
+		PrimitiveType_upcast(PRIMITIVE_TYPE_MEMBER), (char*)&member, ctx->program_alc
+	);
 }

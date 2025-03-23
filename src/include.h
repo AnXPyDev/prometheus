@@ -104,6 +104,7 @@
 #include "parser/impl/Sequence.c"
 #include "parser/impl/Frame.c"
 #include "parser/impl/Call.c"
+#include "parser/impl/Operator.c"
 #include "parser/impl/Catch.c"
 #include "parser/impl/Condition.c"
 #include "parser/impl/Function.c"

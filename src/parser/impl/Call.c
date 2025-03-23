@@ -1,11 +1,15 @@
+typedef struct {
+	FunctionType *ft;
+	FunctionValue *fv;
+} Parser_CallCandidate;
+
 bool Parser_parseArgListCandidate(
-	ParserCache *cache, Function *func, TokenStream *ts,
+	ParserCache *cache, FunctionType *func, TokenStream *ts,
 	ParserContext *ctx, Array *out
 ) {
 	bool error = false;
 
-	if (!Type_isFunctionType(func->type)) abort();
-	Type AT = ((FunctionType*)func->type.object)->argument;
+	Type AT = func->argument;
 	if (!Type_isTupleType(AT)) abort();
 
 	TupleType *TAT = (TupleType*)AT.object;
@@ -85,11 +89,11 @@ void Parser_parseCall(Array funcs, TokenStream *ts, ParserContext *ctx, ParserRe
 
 	Array args;
 
-	FunctionValue *it = funcs.data;
-	FunctionValue *end = it + funcs.size;
+	Parser_CallCandidate *it = funcs.data;
+	Parser_CallCandidate *end = it + funcs.size;
 	for (; it < end; it++) {
 		if (Parser_parseArgListCandidate(
-			&cache, it->function, ts, ctx, &args
+			&cache, it->ft, ts, ctx, &args
 		)) goto found_arglist;
 	}
 
@@ -98,7 +102,7 @@ void Parser_parseCall(Array funcs, TokenStream *ts, ParserContext *ctx, ParserRe
 
 	found_arglist:;
 
-	out->node = CallNode_create(*it, args, ctx->program_alc);
+	out->node = CallNode_create(*it->fv, args, ctx->program_alc);
 }
 
 #define this ((CallNode*)vthis)

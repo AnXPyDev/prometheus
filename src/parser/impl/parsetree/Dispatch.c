@@ -1,4 +1,36 @@
 void ParseTree_dispatch(ParseTree *this, Token *token, ParseTreeState *state) {
+	switch (state->type) {
+		case PARSETREE_STATE_EXTEND_NODE: goto handle_extend_node;
+		default:;
+	}
+			
+	ValueNode *val;
+
+	if (0) handle_extend_node: {
+		ParseTreeState_EXTEND_NODE *state_exn = (ParseTreeState_EXTEND_NODE*)state;
+		Node node = state_exn->state_node.node;
+
+		if (Node_isValueNode(node)) {
+			val = node.object;
+			switch (Type_asPrimitive(val->T)) {
+				case PRIMITIVE_TYPE_TYPE: goto branch_type;
+				default:;
+			}
+		}
+
+		goto discard_previous;
+	}
+
+	if (0) branch_type: {
+		Type T = *(Type*)val->data;
+		ParseTree_branch_type(this, token, state, T);
+		return;
+	}
+
+	if (0) discard_previous: {
+		state->type = PARSETREE_STATE_NODE;
+	}
+
 	switch (token->type) {
 		case TOKEN_TYPE_NUMERIC_LITERAL:
 			ParseTree_branch_number(this, token, state);

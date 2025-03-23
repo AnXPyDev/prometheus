@@ -9,10 +9,12 @@ typedef struct {
 typedef enum {
 	PARSETREE_STATE_NONE = 0,
 	PARSETREE_STATE_NODE,
+	PARSETREE_STATE_EXTEND_NODE,
 	PARSETREE_STATE_TYPE,
 	PARSETREE_STATE_IDENTIFIER,
 	PARSETREE_STATE_MEMBER,
 	PARSETREE_STATE_FUNCTION,
+	PARSETREE_STATE_FUNCTION_CANDIDATES,
 	PARSETREE_STATE_DECLARATION,
 	PARSETREE_STATE_QUALIFIER,
 	PARSETREE_STATE_TYPE_AND_QUALIFIER
@@ -26,6 +28,11 @@ typedef struct {
 	ParseTreeState header;
 	Node node;
 } ParseTreeState_NODE;
+
+typedef struct {
+	ParseTreeState_NODE state_node;
+	ParseTreeState *previous;
+} ParseTreeState_EXTEND_NODE;
 
 typedef enum {
 	PARSETREE_SUB_OK = 0,
@@ -67,3 +74,5 @@ void *ParseTree_stalloc(ParseTree *this, Size size) {
 }
 
 void ParseTree_dispatch(ParseTree *this, Token *token, ParseTreeState *state);
+
+bool ParseTree_extendStateByNode(ParseTree *this, ParseTreeState **statep, Node node);

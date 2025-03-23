@@ -13,12 +13,7 @@ bool ParseTree_sub_call(
 		return false;
 	}
 
-	ParseTreeState_NODE *state_node = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
-	state_node->header.type = PARSETREE_STATE_NODE;
-	state_node->node = result.node;
-
-	*statep = (ParseTreeState*)state_node;
-	return true;
+	return ParseTree_extendStateByNode(this, statep, result.node);
 }
 
 void ParseTree_branch_call(
@@ -31,6 +26,65 @@ void ParseTree_branch_call(
 	opt->header.type = PARSETREE_OPTION_SUB;
 	opt->subf = &ParseTree_sub_call;
 	*(Array*)opt->payload = state_fun->funcs;
+
+	ParseTree_pushOption(this, opt);
+}
+
+bool ParseTree_sub_unary(
+	ParseTree *this, TokenStream *ts, ParseTreeState **statep, void *payload
+) {
+	Array funcs = *(Array*)payload;
+
+	ParserResult result = ParserResult_NULL;
+	Parser_parseCallUnary(funcs, ts, this->ctx, &result);
+	if (Parser_checkfwd(&result, this->result)) return false;
+
+	ParseTreeState_NODE *state_node = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
+	state_node->header.type = PARSETREE_STATE_NODE;
+	state_node->node = result.node;
+
+	*statep = (ParseTreeState*)state_node;
+	return true;
+}
+
+
+void ParseTree_branch_operator_unary(
+	ParseTree *this, Token *token, ParseTreeState *state, Array funcs
+) {
+	ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub) + sizeof(Array));
+	opt->header.next_token = token + 1;
+	opt->header.type = PARSETREE_OPTION_SUB;
+	opt->subf = &ParseTree_sub_call;
+	*(Array*)opt->payload = funcs;
+
+	ParseTree_pushOption(this, opt);
+}
+
+bool ParseTree_sub_binary(
+	ParseTree *this, TokenStream *ts, ParseTreeState **statep, void *payload
+) {
+	ParseTreeState_NODE *state_node = *(ParseTreeState_NODE**)statep;
+
+	Array funcs = *(Array*)payload;
+
+	ParserResult result = ParserResult_NULL;
+	Parser_parseCallBinary(funcs, state_node->node, ts, this->ctx, &result);
+	if (Parser_checkfwd(&result, this->result)) return false;
+
+	state_node->node = result.node;
+
+	*statep = (ParseTreeState*)state_node;
+	return true;
+}
+
+void ParseTree_branch_operator_binary(
+	ParseTree *this, Token *token, ParseTreeState *state, Array funcs)
+{
+	ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub) + sizeof(Array));
+	opt->header.next_token = token + 1;
+	opt->header.type = PARSETREE_OPTION_SUB;
+	opt->subf = &ParseTree_sub_call;
+	*(Array*)opt->payload = funcs;
 
 	ParseTree_pushOption(this, opt);
 }

@@ -8,18 +8,6 @@ void ParseTree_branch_function(
 	ParseTree_dispatch(this, token + 1, (ParseTreeState*)state_fun);
 }
 
-void ParseTree_branch_operator_unary(
-	ParseTree *this, Token *token, ParseTreeState *state, Array funcs
-) {
-
-}
-
-void ParseTree_branch_operator_binary(
-	ParseTree *this, Token *token, ParseTreeState *state, Array funcs)
-{
-
-}
-
 bool ParseTree_sub_fanon(
 	ParseTree *this, TokenStream *ts, ParseTreeState **statep, void *payload
 ) {

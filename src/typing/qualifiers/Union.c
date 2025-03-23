@@ -7,14 +7,34 @@ Qualifier UnionQualifier_upcast(UnionQualifier*);
 Qualifier ConstUnionQualifier_upcast(UnionQualifier*);
 
 Qualifier UnionQualifier_create(Array elements, Allocator alc) {
-	UnionQualifier *this = Allocator_malloc(alc, sizeof(UnionQualifier) + sizeof(Qualifier) * elements.size);
-
-	this->size = elements.size;
-	Qualifier *elm = this->elements;
+	Size size = 0;
 
 	Qualifier *end = (Qualifier*)elements.data + elements.size;
 	for (Qualifier *it = elements.data; it < end; it++) {
-		*(elm++) = Qualifier_copy(*it, alc);
+		if (Qualifier_isUnionQualifier(*it)) {
+			UnionQualifier *uq = it->object;
+			size += uq->size;
+		} else {
+			size += 1;
+		}
+	}
+	
+	UnionQualifier *this = Allocator_malloc(alc, sizeof(UnionQualifier) + sizeof(Qualifier) * size);
+
+	this->size = size;
+	Qualifier *elm = this->elements;
+	
+	for (Qualifier *it = elements.data; it < end; it++) {
+		if (Qualifier_isUnionQualifier(*it)) {
+			UnionQualifier *uq = it->object;
+			Qualifier *uq_it = uq->elements;
+			Qualifier *uq_end = uq_it + uq->size;
+			for (; uq_it < uq_end; uq_it++) {
+				*(elm++) = Qualifier_copy(*uq_it, alc);
+			}
+		} else {
+			*(elm++) = Qualifier_copy(*it, alc);
+		}
 	}
 	
 	return UnionQualifier_upcast(this);
