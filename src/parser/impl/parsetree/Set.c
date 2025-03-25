@@ -11,15 +11,14 @@ bool ParseTree_sub_setMember(
 
 	Node node = SetNode_create(member, result.node, this->ctx->program_alc);
 
-	/*
 	ParseTreeState_NODE *node_state = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
 	node_state->header.type = PARSETREE_STATE_NODE;
 	node_state->node = node;
-	*/
 
-	this->result->node = node;
+	*statep = (ParseTreeState*)node_state;
 
-	*statep = NULL;
+	this->done = true;
+
 	return true;
 }
 

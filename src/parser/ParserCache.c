@@ -89,13 +89,9 @@ ParserResult *ParserCache_parseNode(ParserCache *this, TokenStream *ts, ParserCo
 
 	*cached = item;
 
-	ParserContext newctx = {
-		.program_alc = this->alc,
-		.tmp_alc = ctx->tmp_alc,
-		.frame = ctx->frame,
-		.logstream = StringOutStream_upcast(&this->log),
-		.state = ctx->state
-	};
+	ParserContext newctx = *ctx;
+	newctx.program_alc = this->alc;
+	newctx.logstream = StringOutStream_upcast(&this->log);
 
 	ParserResult *result = &cached->result;
 

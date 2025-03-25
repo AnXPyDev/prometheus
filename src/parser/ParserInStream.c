@@ -48,7 +48,7 @@ ParserChar ParserInStream_getc(ParserInStream *this) {
 
 void ParserInStream_ungetc(ParserInStream *this, ParserChar c) {
 	*(ParserChar*)Vector_push(&this->buffer, this->alc) = c;
-	
+	this->position.character--;	
 	if (g_Parser_CharFlags[(int)ParserChar_toChar(c)] & PARSER_CHAR_NEWLINE) {
 		this->position.line--;
 		this->position.character = this->lastLineLength;

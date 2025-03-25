@@ -1,3 +1,3 @@
 typedef struct {
-	MemberList *elements;
+	MemberList *memberlist;
 } StructType;

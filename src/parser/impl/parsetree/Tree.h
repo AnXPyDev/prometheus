@@ -4,6 +4,7 @@ typedef struct {
 	Allocator state_alc;
 	ParserResult *result;
 	int flags;
+	bool done;
 } ParseTree;
 
 typedef enum {
@@ -17,8 +18,23 @@ typedef enum {
 	PARSETREE_STATE_FUNCTION_CANDIDATES,
 	PARSETREE_STATE_DECLARATION,
 	PARSETREE_STATE_QUALIFIER,
-	PARSETREE_STATE_TYPE_AND_QUALIFIER
+	PARSETREE_STATE_TYPE_AND_QUALIFIER,
+	PARSETREE_STATE__END
 } EParseTreeStateType;
+
+const char *EParseTreeStateType_REPR[PARSETREE_STATE__END] = {
+	[PARSETREE_STATE_NONE] = "PARSETREE_STATE_NONE",
+	[PARSETREE_STATE_NODE] = "PARSETREE_STATE_NODE",
+	[PARSETREE_STATE_EXTEND_NODE] = "PARSETREE_STATE_EXTEND_NODE",
+	[PARSETREE_STATE_TYPE] = "PARSETREE_STATE_TYPE",
+	[PARSETREE_STATE_IDENTIFIER] = "PARSETREE_STATE_IDENTIFIER",
+	[PARSETREE_STATE_MEMBER] = "PARSETREE_STATE_MEMBER",
+	[PARSETREE_STATE_FUNCTION] = "PARSETREE_STATE_FUNCTION",
+	[PARSETREE_STATE_FUNCTION_CANDIDATES] = "PARSETREE_STATE_FUNCTION_CANDIDATES",
+	[PARSETREE_STATE_DECLARATION] = "PARSETREE_STATE_DECLARATION",
+	[PARSETREE_STATE_QUALIFIER] = "PARSETREE_STATE_QUALIFIER",
+	[PARSETREE_STATE_TYPE_AND_QUALIFIER] = "PARSETREE_STATE_TYPE_AND_QUALIFIER",
+};
 
 typedef struct {
 	EParseTreeStateType type;
@@ -76,3 +92,5 @@ void *ParseTree_stalloc(ParseTree *this, Size size) {
 void ParseTree_dispatch(ParseTree *this, Token *token, ParseTreeState *state);
 
 bool ParseTree_extendStateByNode(ParseTree *this, ParseTreeState **statep, Node node);
+
+void ParseTree_stateToNode(ParseTree *this, ParseTreeState *state, ParserResult *out);

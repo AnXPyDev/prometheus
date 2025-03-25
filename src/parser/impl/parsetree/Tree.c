@@ -78,32 +78,26 @@ bool ParseTree_resolveState(ParseTree *this, TokenStream *ts, ParseTreeState **s
 	Token *here = TokenStream_probe(ts);
 	ParseTreeState *state = *statep;
 	switch (state->type) {
-		case PARSETREE_STATE_NONE: {
-			/*
-			#ifdef BUILD_DEBUG
-			//OutStream_puts(this->ctx->logstream, "resolveState: STATE_NONE\n");
-			#endif
-			*/
-		} break;
-		case PARSETREE_STATE_NODE: {
-			ParseTreeState_NODE *state_node = (ParseTreeState_NODE*)state;
-
-			/*
-			#ifdef BUILD_DEBUG
-			PrintFmt(this->ctx->logstream, "resolveState: STATE_NODE {}\n",
-				Node_repr(state_node->node)
-			);
-			#endif
-			*/
-
-			if (Node_isValueNode(state_node->node)) goto unwrap_node;
-			if (this->flags & PARSENODE_FLAG_NO_EVALUATE) break;
-			goto eval_node;
-		} break;
+		case PARSETREE_STATE_NODE: goto handle_node;
+		case PARSETREE_STATE_EXTEND_NODE: goto handle_ext_node;
 		default:;
 	}
 
+	if (0) handle_node: {
+		ParseTreeState_NODE *state_node = (ParseTreeState_NODE*)state;
+		if (Node_isValueNode(state_node->node)) goto unwrap_node;
+		goto eval_node;
+	}
+
+	if (0) handle_ext_node: {
+		ParseTreeState_NODE *state_node = (ParseTreeState_NODE*)state;
+		if (Node_isValueNode(state_node->node)) goto quit;
+		goto eval_node;
+	}
+
 	if (0) eval_node: {
+		if (this->flags & PARSENODE_FLAG_NO_EVALUATE) goto quit;
+
 		ParseTreeState_NODE *state_node = (ParseTreeState_NODE*)state;
 
 		int eval_flags = ParserNode_eval_flags(state_node->node, this->ctx);
@@ -141,51 +135,56 @@ bool ParseTree_resolveState(ParseTree *this, TokenStream *ts, ParseTreeState **s
 		}
 	}
 
+	quit:;
 	return true;
 }
 
-bool ParseTree_resolveResult(ParseTree *this, Token *here, ParseTreeState *state) {
-	ParserResult *out = this->result;
-
-	Node node = Node_NULL;
-
+void ParseTree_stateToNode(
+	ParseTree *this, ParseTreeState *state, ParserResult *out
+) {
 	switch (state->type) {
 		case PARSETREE_STATE_NONE: goto handle_none;
 		case PARSETREE_STATE_NODE: goto handle_node;
 		case PARSETREE_STATE_MEMBER: goto handle_member;
 		case PARSETREE_STATE_TYPE: goto handle_type;
 		case PARSETREE_STATE_QUALIFIER: goto handle_qualifier;
-		case PARSETREE_STATE_IDENTIFIER: goto handle_identifier;
+		//case PARSETREE_STATE_IDENTIFIER: goto handle_identifier;
 		case PARSETREE_STATE_DECLARATION: goto handle_declaration;
 		default: goto err_invalid_state;
 	}
-
 
 	if (0) handle_none: {}
 
 	if (0) handle_node: {
 		ParseTreeState_NODE *state_node = (ParseTreeState_NODE*)state;
-		node = state_node->node;
+		out->node = state_node->node;
 	}
 
 	if (0) handle_member: {
 		ParseTreeState_MEMBER *state_member = (ParseTreeState_MEMBER*)state;
 		Member *member = state_member->member;
 
-		if (Type_equalPrimitive(Type_strip(out->expect), PRIMITIVE_TYPE_MEMBER)) {
-			node = ValueNode_create(
+		#ifdef BUILD_DEBUG
+		PrintFmt(this->ctx->dbgstream, "stn handle_member {}\n", Type_repr(this->result->expect));
+		#endif
+
+		if (Type_equalPrimitive(Type_strip(this->result->expect), PRIMITIVE_TYPE_MEMBER)) {
+			#ifdef BUILD_DEBUG
+			OutStream_puts(this->ctx->dbgstream, "stn as member\n");
+			#endif
+			out->node = ValueNode_create(
 				PrimitiveType_upcast(PRIMITIVE_TYPE_MEMBER),
 				(char*)&member, this->ctx->program_alc
 			);
 		} else {
-			node = GetNode_create(member, this->ctx->program_alc);
+			out->node = GetNode_create(member, this->ctx->program_alc);
 		}
 	}
 
 	if (0) handle_type: {
 		ParseTreeState_TYPE *state_type = (ParseTreeState_TYPE*)state;
 		Type type = Type_copy(state_type->type, this->ctx->program_alc);
-		node = ValueNode_create(
+		out->node = ValueNode_create(
 			PrimitiveType_upcast(PRIMITIVE_TYPE_TYPE),
 			(char*)&type, this->ctx->program_alc
 		);
@@ -194,7 +193,7 @@ bool ParseTree_resolveResult(ParseTree *this, Token *here, ParseTreeState *state
 	if (0) handle_qualifier: {
 		ParseTreeState_QUALIFIER *state_qual = (ParseTreeState_QUALIFIER*)state;
 		Qualifier qualifier = Qualifier_copy(state_qual->qualifier, this->ctx->program_alc);
-		node = ValueNode_create(
+		out->node = ValueNode_create(
 			PrimitiveType_upcast(PRIMITIVE_TYPE_QUALIFIER),
 			(char*)&qualifier, this->ctx->program_alc
 		);
@@ -217,35 +216,19 @@ bool ParseTree_resolveResult(ParseTree *this, Token *here, ParseTreeState *state
 		val->type = state_decl->info.type;
 		val->identifier = state_decl->info.identifier;
 
-		node = ValueNode_create(
+		out->node = ValueNode_create(
 			PrimitiveType_upcast(PRIMITIVE_TYPE_PARSER_INTRIN),
 			(char*)&val, this->ctx->tmp_alc
 		);
 	}
-
-	check: {
-		if (!Type_nullOrMatch(out->expect, Node_resultType(node, this->ctx->tmp_alc))) {
-			goto err_type_mismatch;
-		}
-		out->node = node;
-	}
-
-	if (0) err_type_mismatch: {
-		Parser_throws(this->ctx, &here->src, PARSER_RESULT_PANIC, "Parser result doesn't match expected type", out);
-		return false;
-	}
-
+	
 	if (0) err_invalid_state: {
-		Parser_throws(this->ctx, &here->src, PARSER_RESULT_PANIC, "Cannot resolve result for parse tree state", out);
-		return false;
+		Parser_throws(this->ctx, NULL, PARSER_RESULT_PANIC, "Cannot resolve result for parse tree state", out);
 	}
 
 	if (0) err_no_intrin: {
-		Parser_throws(this->ctx, &here->src, PARSER_RESULT_PANIC, "Cannot export parser intrinsic state", out);
-		return false;
+		Parser_throws(this->ctx, NULL, PARSER_RESULT_PANIC, "Cannot export parser intrinsic state", out);
 	}
-
-	return true;
 }
 
 void ParseTree_parseNode(TokenStream *ts, ParserContext *ctx, ParserResult *out) {
@@ -257,7 +240,8 @@ void ParseTree_parseNode(TokenStream *ts, ParserContext *ctx, ParserResult *out)
 		.options = { .vec = &optionStack, ctx->tmp_alc },
 		.result = out,
 		.state_alc = ctx->tmp_alc,
-		.flags = out->flags
+		.flags = out->flags,
+		.done = false
 	};
 
 	ParseTreeState state_none = {
@@ -265,18 +249,29 @@ void ParseTree_parseNode(TokenStream *ts, ParserContext *ctx, ParserResult *out)
 	};
 
 	ParseTreeState *state = &state_none;
+	
+	Token *token = TokenStream_probe(ts);
 
-	while (true) {
-		if (!ParseTree_resolveState(&this, ts, &state)) goto handle_error;
+	#ifdef BUILD_DEBUG
+	OutStream_indent(ctx->dbgstream, true);
+	PrintFmt(ctx->dbgstream, "---- parseNode: {}\n", Token_repr(TokenStream_probe(ts)));
+	#endif
 
-		Token *token = TokenStream_probe(ts);
+	while (!this.done) {
+		if (!ParseTree_resolveState(&this, ts, &state)) goto err_resolve_state;
+
+		token = TokenStream_probe(ts);
+		
+		#ifdef BUILD_DEBUG
+		PrintFmt(ctx->dbgstream, "march: {} {}\n",
+			strrepr(EParseTreeStateType_REPR[state->type]),
+			Token_repr(token)
+		);
+		#endif
 
 		switch (token->type) {
 			case TOKEN_TYPE_END: {
-				if (this.flags & PARSENODE_FLAG_NO_EXPLICIT_END) {
-					Parser_throws(this.ctx, &token->src, PARSER_RESULT_PANIC, "Explicit end not allowed here", this.result);
-					goto handle_error;
-				}
+				if (this.flags & PARSENODE_FLAG_NO_EXPLICIT_END) goto err_no_explicit_end;
 				if (!(this.flags & PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END)) {
 					TokenStream_next(ts);
 				}
@@ -299,16 +294,62 @@ void ParseTree_parseNode(TokenStream *ts, ParserContext *ctx, ParserResult *out)
 
 		if (!ParseTree_dispatchOption(&this, ts, &state, option)) goto handle_error;
 
-		// subroutine signaled to exit this function
-		if (state == NULL) goto cleanup;
-
 		if (this.flags & PARSENODE_FLAG_NO_MARCH) break;
 		if (0) handle_end: break;
 	}
-	
-	if (0) handle_error: goto cleanup;
 
-	ParseTree_resolveResult(&this, TokenStream_probe(ts), state);
+	token = TokenStream_probe(ts);
+
+	#ifdef BUILD_DEBUG
+	PrintFmt(ctx->dbgstream, "resolve: {}\n",
+		strrepr(EParseTreeStateType_REPR[state->type]),
+	);
+	if (state->type == PARSETREE_STATE_NODE) {
+		PrintFmt(ctx->dbgstream, "resolve_node: {}\n",
+			Node_repr(((ParseTreeState_NODE*)state)->node)
+		);
+	}
+	#endif
+
+	if (state->type == PARSETREE_STATE_EXTEND_NODE) {
+		state->type = PARSETREE_STATE_NODE;
+	}
+
+	if (!ParseTree_resolveState(&this, ts, &state)) goto err_resolve_state;
+
+	ParserResult result = ParserResult_NULL;
+	ParseTree_stateToNode(&this, state, &result);
+
+	if (Parser_checkfwd(&result, out)) goto handle_error;
+
+	if (!Type_nullOrMatch(out->expect, Node_resultType(result.node, ctx->tmp_alc))) {
+		goto err_type_mismatch;
+	}
+	
+	out->node = result.node;
+
+	#ifdef BUILD_DEBUG
+	PrintFmt(ctx->dbgstream, "---- result: {}", Node_repr(out->node));
+	OutStream_unindent(ctx->dbgstream, true);
+	#endif
+	
+	if (0) err_type_mismatch: {
+		#ifdef BUILD_DEBUG
+		PrintFmt(ctx->dbgstream, "---- type mismatch: {} {}", Node_repr(out->node), Type_repr(out->expect));
+		OutStream_unindent(ctx->dbgstream, true);
+		#endif
+		Parser_throws(ctx, &token->src, PARSER_RESULT_PANIC, "Parser result doesn't match expected type", out);
+	}
+	
+	if (0) err_resolve_state: {
+		Parser_throws(ctx, &token->src, PARSER_RESULT_PANIC, "Failed to resolve state", this.result);
+	}
+
+	if (0) err_no_explicit_end: {
+		Parser_throws(this.ctx, &token->src, PARSER_RESULT_PANIC, "Explicit end not allowed here", this.result);
+	}
+
+	if (0) handle_error: goto cleanup;
 
 	cleanup: {
 		Vector_destroy(&optionStack, ctx->tmp_alc);

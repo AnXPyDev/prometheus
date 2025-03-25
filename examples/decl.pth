@@ -1,1 +1,4 @@
-const @(int) x;
+int x = 5;
+@(int) xp = &(x);
+
+print(xp);

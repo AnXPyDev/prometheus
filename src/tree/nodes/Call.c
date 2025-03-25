@@ -64,11 +64,8 @@ Type CallNode_resultType(void *vthis, Allocator alc) {
 	}
 
 	FunctionType *F = T.object;
-	Type result = F->result;
-	F->result = Type_NULL;
-	FunctionType_destroy(F, alc);
 
-	return result;
+	return F->result;
 }
 
 void CallNode_destroy(void *vthis, Allocator alc) {

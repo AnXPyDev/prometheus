@@ -39,12 +39,7 @@ bool ParseTree_sub_unary(
 	Parser_parseCallUnary(funcs, ts, this->ctx, &result);
 	if (Parser_checkfwd(&result, this->result)) return false;
 
-	ParseTreeState_NODE *state_node = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
-	state_node->header.type = PARSETREE_STATE_NODE;
-	state_node->node = result.node;
-
-	*statep = (ParseTreeState*)state_node;
-	return true;
+	return ParseTree_extendStateByNode(this, statep, result.node);
 }
 
 
@@ -54,7 +49,7 @@ void ParseTree_branch_operator_unary(
 	ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub) + sizeof(Array));
 	opt->header.next_token = token + 1;
 	opt->header.type = PARSETREE_OPTION_SUB;
-	opt->subf = &ParseTree_sub_call;
+	opt->subf = &ParseTree_sub_unary;
 	*(Array*)opt->payload = funcs;
 
 	ParseTree_pushOption(this, opt);
@@ -63,17 +58,23 @@ void ParseTree_branch_operator_unary(
 bool ParseTree_sub_binary(
 	ParseTree *this, TokenStream *ts, ParseTreeState **statep, void *payload
 ) {
-	ParseTreeState_NODE *state_node = *(ParseTreeState_NODE**)statep;
+	ParserResult result = ParserResult_NULL;
+	ParseTree_stateToNode(this, *statep, &result);
+
+	if (Parser_checkfwd(&result, this->result)) return false;
 
 	Array funcs = *(Array*)payload;
 
-	ParserResult result = ParserResult_NULL;
-	Parser_parseCallBinary(funcs, state_node->node, ts, this->ctx, &result);
+	ParserResult call_result = ParserResult_NULL;
+	Parser_parseCallBinary(funcs, result.node, ts, this->ctx, &call_result);
 	if (Parser_checkfwd(&result, this->result)) return false;
 
-	state_node->node = result.node;
+	ParseTreeState_NODE *state_node = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
+	state_node->header.type = PARSETREE_STATE_NODE;
+	state_node->node = call_result.node;
 
 	*statep = (ParseTreeState*)state_node;
+
 	return true;
 }
 
@@ -83,7 +84,7 @@ void ParseTree_branch_operator_binary(
 	ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub) + sizeof(Array));
 	opt->header.next_token = token + 1;
 	opt->header.type = PARSETREE_OPTION_SUB;
-	opt->subf = &ParseTree_sub_call;
+	opt->subf = &ParseTree_sub_binary;
 	*(Array*)opt->payload = funcs;
 
 	ParseTree_pushOption(this, opt);

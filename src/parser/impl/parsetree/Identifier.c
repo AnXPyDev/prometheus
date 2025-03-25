@@ -19,7 +19,7 @@ void ParseTree_branch_identifier(ParseTree *this, Token *token, ParseTreeState *
 	);
 
 	opt->header.next_token = token + 1;
-	opt->header.type = PARSETREE_OPTION_SUB;
+	opt->header.type = PARSETREE_OPTION_STATE;
 
 	ParseTreeState_IDENTIFIER *state_id = (ParseTreeState_IDENTIFIER*)opt->state;
 	state_id->header.type = PARSETREE_STATE_IDENTIFIER;

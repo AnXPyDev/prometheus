@@ -22,7 +22,7 @@ void ParseTree_branch_member(
 
 	ParseTree_pushOption(this, opt);
 
-	ParseTree_dispatch(this, token + 1, (ParseTreeState*)member_state);
+	//ParseTree_dispatch(this, token + 1, (ParseTreeState*)member_state);
 }
 
 void ParseTree_dispatch_member(

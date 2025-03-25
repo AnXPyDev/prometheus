@@ -75,12 +75,15 @@ int main(int argc, char **argv) {
 		.root_frame = &pframe
 	};
 
+	IndentOutStream dbg_indent; IndentOutStream_create(&dbg_indent, g_os_stderr);
+
 	ParserContext parser_ctx = {
 		.state = &parser,
 		.frame = parser.root_frame,
 		.tmp_alc = alc,
 		.program_alc = alc,
 		.logstream = g_os_stderr,
+		.dbgstream = IndentOutStream_upcast(&dbg_indent)
 	};
 	
 	Parser_setupBuiltins(&parser_ctx);

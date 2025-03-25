@@ -118,4 +118,5 @@
 #include "language/builtins/Typing.c"
 #include "language/builtins/Print.c"
 #include "language/builtins/Arithmetic.c"
+#include "language/builtins/Member.c"
 #include "language/Builtin.c"

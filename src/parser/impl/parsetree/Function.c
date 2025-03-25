@@ -16,13 +16,8 @@ bool ParseTree_sub_fanon(
 	ParserResult result = ParserResult_NULL;
 	Parser_parseFunction_anonymous(ts, this->ctx, &result, RT);
 	if (Parser_checkfwd(&result, this->result)) return false;
-	
-	ParseTreeState_NODE *node_state = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
-	node_state->header.type = PARSETREE_STATE_NODE;
-	node_state->node = result.node;
 
-	*statep = (ParseTreeState*)node_state;
-	return true;
+	return ParseTree_extendStateByNode(this, statep, result.node);
 }
 
 void ParseTree_branch_fanon(ParseTree *this, Token *token, ParseTreeState *state) {
@@ -68,13 +63,10 @@ bool ParseTree_sub_fdecl(
 	ParserResult result = ParserResult_NULL;
 	Parser_parseFunction_declaration(ts, this->ctx, &result, &intrdecl);
 	if (Parser_checkfwd(&result, this->result)) return false;
-	
-	ParseTreeState_NODE *node_state = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
-	node_state->header.type = PARSETREE_STATE_NODE;
-	node_state->node = result.node;
 
-	*statep = (ParseTreeState*)node_state;
-	return true;
+	this->done = true;
+
+	return ParseTree_extendStateByNode(this, statep, result.node);
 }
 
 void ParseTree_branch_fdecl(ParseTree *this, Token *token, ParseTreeState *state) {

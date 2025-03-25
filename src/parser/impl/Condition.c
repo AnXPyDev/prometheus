@@ -1,11 +1,11 @@
 void Parser_parseCondition(TokenStream *ts, ParserContext *ctx, ParserResult *out) {
 	ParserResult res_cond = ParserResult_NULL;
-	res_cond.flags = PARSENODE_FLAG_NO_EXPLICIT_END;
+	res_cond.flags = PARSENODE_FLAG_NO_EXPLICIT_END | PARSENODE_FLAG_NO_MARCH;
 	Parser_parseNode(ts, ctx, &res_cond);
 	if (Parser_checkfwd(&res_cond, out)) return;
 	
 	ParserResult res_true = ParserResult_NULL;
-	res_true.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END;
+	res_true.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END | PARSENODE_FLAG_NO_MARCH;
 	Parser_parseNode(ts, ctx, &res_true);
 	if (Parser_checkfwd(&res_true, out)) return;
 
@@ -44,7 +44,7 @@ void Parser_parseCondition(TokenStream *ts, ParserContext *ctx, ParserResult *ou
 
 	has_else:;
 	ParserResult res_false = ParserResult_NULL;
-	res_false.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END;
+	res_false.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END | PARSENODE_FLAG_NO_MARCH;
 	Parser_parseNode(ts, ctx, &res_false);
 	if (Parser_checkfwd(&res_false, out)) return;
 

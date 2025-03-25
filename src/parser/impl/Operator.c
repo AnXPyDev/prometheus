@@ -3,7 +3,7 @@ bool Parser_parseUnaryCandidate(
 	ParserContext *ctx, Node *out
 ) {
 	ParserResult result = ParserResult_NULL;
-	result.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END;
+	result.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END | PARSENODE_FLAG_NO_MARCH;
 	result.expect = AT;
 
 	ParserResult *cached = ParserCache_parseNode(
@@ -56,6 +56,10 @@ void Parser_parseCallBinary(Array funcs, Node first, TokenStream *ts, ParserCont
 
 	Type first_T = Node_resultType(first, ctx->tmp_alc);
 
+	#ifdef BUILD_DEBUG
+	PrintFmt(ctx->dbgstream, "binary for {} {}\n", Node_repr(first), Type_repr(first_T));
+	#endif
+
 	Node args[] = { first, Node_NULL };
 
 	Parser_CallCandidate *it = funcs.data;
@@ -73,7 +77,7 @@ void Parser_parseCallBinary(Array funcs, Node first, TokenStream *ts, ParserCont
 		)) goto found_arg;
 	}
 
-	Parser_throws(ctx, &here->src, PARSER_RESULT_PANIC, "No suitable unary opeartor", out);
+	Parser_throws(ctx, &here->src, PARSER_RESULT_PANIC, "No suitable binary opeartor", out);
 	return;
 
 	found_arg:;
