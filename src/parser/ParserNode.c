@@ -47,7 +47,7 @@ SimStackFrame *ParserFrame_toSimFrame(ParserFrame *this, SimState *simstate) {
 			memcpy(
 				SimStackFrame_getValue(simframe, member),
 				val,
-				simframe->mlinfo->info[member->index].type_size
+				simframe->mlinfo->info[member->index].typeinfo.size
 			);
 		}
 	}

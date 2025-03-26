@@ -20,7 +20,7 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 		return;
 	}
 
-	SimMemberListInfo *mlinfo = SimCache_getMemberList(
+	MemberListInfo *mlinfo = SimCache_getMemberList(
 		&context->state->cache, mlargs
 	);
 
@@ -81,14 +81,14 @@ void CallNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 	);
 
 	{
-		SimMemberInfo *info = mlinfo->info;
+		MemberInfo *info = mlinfo->info;
 		SimValue *arg = args;
 
 		for (Size i = 0; i < this->argcount; i++) {
 			if (info->flags & MEMBERINFO_FLAG_ANY) {
-				memcpy(stackframe->data + info->offset, arg, info->type_size);
+				memcpy(stackframe->data + info->offset, arg, info->typeinfo.size);
 			} else {
-				memcpy(stackframe->data + info->offset, arg->data, info->type_size);
+				memcpy(stackframe->data + info->offset, arg->data, info->typeinfo.size);
 			}
 			arg++;
 			info++;

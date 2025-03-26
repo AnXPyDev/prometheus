@@ -53,6 +53,7 @@ const IParserNode IParserNode_SetNode = {
 #define this ((SetPointerNode*)vthis)
 
 int SetPointerNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	return PARSERNODE_EVAL_FLAG_IMPOSSIBLE;
 	int result = 0;
 	if ((result |= ParserNode_eval_flags(this->pointer, ctx)) & PARSERNODE_EVAL_FLAG_IMPOSSIBLE)
 		return result;
@@ -71,6 +72,7 @@ const IParserNode IParserNode_SetPointerNode = {
 #define this ((GetPointerNode*)vthis)
 
 int GetPointerNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	return PARSERNODE_EVAL_FLAG_IMPOSSIBLE;
 	return ParserNode_eval_flags(this->pointer, ctx);
 }
 
@@ -84,6 +86,7 @@ const IParserNode IParserNode_GetPointerNode = {
 #define this ((TakePointerNode*)vthis)
 
 int TakePointerNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	return PARSERNODE_EVAL_FLAG_IMPOSSIBLE;
 	// TODO relax restrictions
 	// cannot take pointer of parser frame values
 	if (ParserFrame_getMemberOwner(ctx->frame, this->member))

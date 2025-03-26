@@ -3,6 +3,7 @@
 
 #include "tree/Identifier.c"
 #include "tree/Member.c"
+#include "tree/MemberInfo.h"
 
 #include "sim/config.h"
 #include "sim/SimCache.h"
@@ -22,12 +23,16 @@
 #include "tree/Function.h"
 
 #include "typing/types/Primitive.c"
+
+#include "tree/MemberInfo.c"
+
 #include "typing/types/Pointer.c"
 #include "typing/types/Qualifier.c"
 #include "typing/types/Function.c"
 #include "typing/types/Union.c"
 #include "typing/types/Tuple.c"
 #include "typing/types/Array.c"
+#include "typing/types/Struct.c"
 #include "typing/types/Span.c"
 
 #include "typing/Global.c"
@@ -103,6 +108,7 @@
 #include "parser/impl/Control.c"
 #include "parser/impl/Sequence.c"
 #include "parser/impl/Frame.c"
+#include "parser/impl/Struct.c"
 #include "parser/impl/Call.c"
 #include "parser/impl/Operator.c"
 #include "parser/impl/Catch.c"

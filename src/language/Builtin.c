@@ -83,9 +83,5 @@ void Language_setupBuiltins(ParserContext *ctx) {
 	Language_setupBuiltinFunction(frame, alc,
 		strview("@"), Language_builtin_ptrtype_toFunction(mla, alc)
 	);
-	
-	Language_setupBuiltinFunction(frame, alc,
-		strview("&"), Language_builtin_takeptr_toFunction(mla, alc)
-	);
 
 }

@@ -92,10 +92,13 @@ void Parser_parseCall(Array funcs, TokenStream *ts, ParserContext *ctx, ParserRe
 	Parser_CallCandidate *it = funcs.data;
 	Parser_CallCandidate *end = it + funcs.size;
 	for (; it < end; it++) {
+		TokenStream_set(ts, here);
+		PrintFmt(ctx->dbgstream, "call candidate: {} {}\n", Type_repr(FunctionType_upcast(it->ft)), FunctionValue_repr(it->fv));
 		if (Parser_parseArgListCandidate(
 			&cache, it->ft, ts, ctx, &args
 		)) goto found_arglist;
 	}
+
 
 	Parser_throws(ctx, &here->src, PARSER_RESULT_PANIC, "No suitable function call", out);
 	return;

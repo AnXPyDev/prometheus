@@ -335,7 +335,7 @@ void ParseTree_parseNode(TokenStream *ts, ParserContext *ctx, ParserResult *out)
 	
 	if (0) err_type_mismatch: {
 		#ifdef BUILD_DEBUG
-		PrintFmt(ctx->dbgstream, "---- type mismatch: {} {}", Node_repr(out->node), Type_repr(out->expect));
+		PrintFmt(ctx->dbgstream, "---- type mismatch: {} {}", Node_repr(result.node), Type_repr(out->expect));
 		OutStream_unindent(ctx->dbgstream, true);
 		#endif
 		Parser_throws(ctx, &token->src, PARSER_RESULT_PANIC, "Parser result doesn't match expected type", out);

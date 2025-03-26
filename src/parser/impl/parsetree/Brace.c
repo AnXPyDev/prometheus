@@ -3,6 +3,11 @@ bool ParseTree_sub_braced(
 ) {
 	ParserResult result = ParserResult_NULL;
 	result.flags = PARSENODE_FLAG_NO_EXPLICIT_END;
+
+	if (this->flags & PARSENODE_FLAG_NO_MARCH) {
+		result.expect = this->result->expect;
+	}
+
 	Parser_parseNode(ts, this->ctx, &result);
 	if (Parser_checkfwd(&result, this->result)) return false;
 

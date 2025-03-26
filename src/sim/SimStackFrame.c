@@ -1,5 +1,5 @@
-SimStackFrame *SimStackFrame_create(SimStackFrame *parent, MemberList *memberlist, SimMemberListInfo *mlinfo, Allocator alc, Allocator tmp_alc) {
-	SimStackFrame *this = Allocator_calloc(alc, sizeof(SimStackFrame) + mlinfo->memsize);
+SimStackFrame *SimStackFrame_create(SimStackFrame *parent, MemberList *memberlist, MemberListInfo *mlinfo, Allocator alc, Allocator tmp_alc) {
+	SimStackFrame *this = Allocator_calloc(alc, sizeof(SimStackFrame) + mlinfo->typeinfo.size);
 	Vector_create(&this->deferred, sizeof(Node));
 	this->parent = parent;
 	this->mlinfo = mlinfo;

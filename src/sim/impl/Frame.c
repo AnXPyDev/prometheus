@@ -5,17 +5,17 @@ void FrameNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out
 	ArenaAllocator_create(&temp_alc_, context->state->alc, 2048);
 	Allocator temp_alc = ArenaAllocator_upcast(&temp_alc_);
 
-	SimMemberListInfo *mlinfo = SimCache_getMemberList(&context->state->cache, this->memberlist);
+	MemberListInfo *mlinfo = SimCache_getMemberList(&context->state->cache, this->memberlist);
 
 	SimStackFrame *stackframe = SimStackFrame_create(context->frame, this->memberlist, mlinfo, temp_alc, temp_alc);
 
 	/* copy defaults */ {
-		SimMemberInfo *info = mlinfo->info;
+		MemberInfo *info = mlinfo->info;
 		void **it = this->values;
 		void **end = it + this->memberlist->members.size;
 		for (; it < end; it++) {
 			if (*it) {
-				memcpy(stackframe->data + info->offset, *it, info->type_size);
+				memcpy(stackframe->data + info->offset, *it, info->typeinfo.size);
 			}
 			info++;
 		}

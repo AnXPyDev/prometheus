@@ -1,4 +1,3 @@
-int x = 5;
-@(int) xp = &(x);
-
-print(xp);
+const struct { int result } test(struct { int x, int y } input) {
+	print("Heja hopa\n");
+}

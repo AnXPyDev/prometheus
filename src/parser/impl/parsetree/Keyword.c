@@ -35,12 +35,25 @@ void ParseTree_branch_keyword(
 				case PARSER_KEYWORD_IF: goto stmt_condition;
 				case PARSER_KEYWORD_LOOP: goto stmt_loop;
 				case PARSER_KEYWORD_CATCH: goto stmt_catch;
+
+				case PARSER_KEYWORD_GET_PTR: goto stmt_getptr;
+				case PARSER_KEYWORD_TAKE_PTR: goto stmt_takeptr;
+
+				case PARSER_KEYWORD_STRUCT: goto kw_struct;
+			}
+		} break;
+
+		case PARSETREE_STATE_QUALIFIER: {
+			switch (kw) {
+				case PARSER_KEYWORD_STRUCT: goto kw_struct;
+				default:;
 			}
 		} break;
 
 		case PARSETREE_STATE_MEMBER: {
 			switch (kw) {
 				case PARSER_KEYWORD_SET: goto kw_set_member;
+				case PARSER_KEYWORD_SET_PTR: goto kw_setptr;
 				default:;
 			}
 		} break;
@@ -48,6 +61,14 @@ void ParseTree_branch_keyword(
 		case PARSETREE_STATE_DECLARATION: {
 			switch (kw) {
 				case PARSER_KEYWORD_SET: goto kw_set_declaration;
+				default:;
+			}
+		} break;
+
+		case PARSETREE_STATE_NODE: {
+			switch (kw) {
+				case PARSER_KEYWORD_SET_PTR: goto kw_setptr;
+				case PARSER_KEYWORD_CAST: goto kw_cast;
 				default:;
 			}
 		} break;
@@ -65,4 +86,11 @@ void ParseTree_branch_keyword(
 	if (0) stmt_loop: ParseTree_branch_loop(this, token, state);
 	if (0) stmt_catch: ParseTree_branch_catch(this, token, state);
 	if (0) stmt_closure: {}
+
+	if (0) stmt_getptr: ParseTree_branch_getptr(this, token, state);
+	if (0) stmt_takeptr: ParseTree_branch_takeptr(this, token, state);
+	
+	if (0) kw_setptr: ParseTree_branch_setptr(this, token, state);
+	if (0) kw_cast: ParseTree_branch_cast(this, token, state);
+	if (0) kw_struct: ParseTree_branch_struct(this, token, state);
 }

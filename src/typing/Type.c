@@ -134,5 +134,6 @@ bool Type_isFunctionType(Type);
 bool Type_isSpanType(Type);
 bool Type_isArrayType(Type);
 bool Type_isTupleType(Type);
+bool Type_isStructType(Type);
 
 Type Type_strip(Type);

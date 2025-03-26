@@ -35,6 +35,21 @@ void ParseTree_dispatch_identifier(ParseTree *this, Token *token, ParseTreeState
 	#define IS_UNARY(M) MATCH_PQUAL((M)->qualifier, OPERATOR_UNARY)
 	#define IS_BINARY(M) MATCH_PQUAL((M)->qualifier, OPERATOR_BINARY)
 
+	bool branched_identifier = false;
+
+	switch (state->type) {
+		case PARSETREE_STATE_TYPE:
+		case PARSETREE_STATE_TYPE_AND_QUALIFIER:
+			goto prefer_identifier;
+		default:;
+	}
+
+	if (0) prefer_identifier: {
+		ParseTree_branch_identifier(this, token, state);
+		branched_identifier = true;
+	}
+
+
 	Vector mvps; Vector_create(&mvps, sizeof(MemberValuePair));
 	ParserFrame_find(this->ctx->frame, token->str, (Vector_Alc) { &mvps, this->ctx->tmp_alc });
 
@@ -57,7 +72,8 @@ void ParseTree_dispatch_identifier(ParseTree *this, Token *token, ParseTreeState
 
 	if (0) op_unary: {
 		for (; it < end; it++) {
-			if (it->value && IS_UNARY(it->member)) {
+			Type FT = Type_strip(it->member->type);
+			if (Type_isFunctionType(FT) && it->value && IS_UNARY(it->member)) {
 				*(Parser_CallCandidate*)Vector_push(&funcs, this->ctx->tmp_alc)
 					= (Parser_CallCandidate) {
 						.ft = (FunctionType*)FT.object,
@@ -71,7 +87,8 @@ void ParseTree_dispatch_identifier(ParseTree *this, Token *token, ParseTreeState
 
 	if (0) op_binary: {
 		for (; it < end; it++) {
-			if (it->value && IS_BINARY(it->member)) {
+			Type FT = Type_strip(it->member->type);
+			if (Type_isFunctionType(FT) && it->value && IS_BINARY(it->member)) {
 				*(Parser_CallCandidate*)Vector_push(&funcs, this->ctx->tmp_alc)
 					= (Parser_CallCandidate) {
 						.ft = (FunctionType*)FT.object,
@@ -85,7 +102,11 @@ void ParseTree_dispatch_identifier(ParseTree *this, Token *token, ParseTreeState
 
 	if (0) function: {
 		for (; it < end; it++) {
-			if (it->value && !IS_BINARY(it->member) && !IS_UNARY(it->member)) {
+			Type FT = Type_strip(it->member->type);
+			if (
+				Type_isFunctionType(FT) && it->value &&
+				!IS_BINARY(it->member) && !IS_UNARY(it->member)
+			) {
 				*(Parser_CallCandidate*)Vector_push(&funcs, this->ctx->tmp_alc)
 					= (Parser_CallCandidate) {
 						.ft = (FunctionType*)FT.object,
@@ -102,7 +123,10 @@ void ParseTree_dispatch_identifier(ParseTree *this, Token *token, ParseTreeState
 	ParseTree_dispatch_member(this, token, state, *first);
 
 	skip_member:;
-	ParseTree_branch_identifier(this, token, state);
+
+	if (!branched_identifier) {
+		ParseTree_branch_identifier(this, token, state);
+	}
 
 	#undef IS_UNARY
 	#undef IS_BINARY
