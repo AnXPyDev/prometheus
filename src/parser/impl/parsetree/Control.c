@@ -7,9 +7,13 @@ bool ParseTree_sub_control(
 	Parser_parseControl(signal, ts, this->ctx, &result);
 	if (Parser_checkfwd(&result, this->result)) return false;
 
-	this->result->node = result.node;
+	ParseTreeState_NODE *state_node = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
+	state_node->header.type = PARSETREE_STATE_NODE;
+	state_node->node = result.node;
 
-	*statep = NULL;
+	*statep = (ParseTreeState*)state_node;
+
+	this->done = true;
 	return true;
 }
 

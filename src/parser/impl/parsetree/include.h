@@ -1,9 +1,11 @@
 #include "Tree.h"
+#include "Member.h"
 #include "states.h"
 #include "decl.h"
 #include "Function.h"
 #include "Set.h"
 #include "Qualifier.h"
+#include "Access.h"
 
 #include "Number.c"
 #include "String.c"
@@ -22,10 +24,10 @@
 #include "Declaration.c"
 #include "Function.c"
 #include "Set.c"
+#include "Access.c"
 #include "Identifier.c"
 #include "Brace.c"
 #include "Index.c"
-#include "Access.c"
 
 #include "Dispatch.c"
 #include "Tree.c"

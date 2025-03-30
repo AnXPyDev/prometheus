@@ -22,6 +22,15 @@ void Language_setupBuiltins(ParserContext *ctx) {
 	MemberListAllocator *mla = ctx->state->mla;
 
 	Language_setupBuiltinType(frame, alc,
+		strview("auto"), PrimitiveType_upcast(PRIMITIVE_TYPE_AUTO)
+	);
+	Language_setupBuiltinType(frame, alc,
+		strview("any"), PrimitiveType_upcast(PRIMITIVE_TYPE_AUTO)
+	);
+	Language_setupBuiltinType(frame, alc,
+		strview("type"), PrimitiveType_upcast(PRIMITIVE_TYPE_TYPE)
+	);
+	Language_setupBuiltinType(frame, alc,
 		strview("void"), PrimitiveType_upcast(PRIMITIVE_TYPE_VOID)
 	);
 	Language_setupBuiltinType(frame, alc,
@@ -48,10 +57,7 @@ void Language_setupBuiltins(ParserContext *ctx) {
 	Language_setupBuiltinType(frame, alc,
 		strview("ByteSpan"), TYPE_BYTESPAN
 	);
-	Language_setupBuiltinType(frame, alc,
-		strview("@void"), TYPE_VOIDPTR
-	);
-	
+
 	Language_setupBuiltinQualifier(frame, alc,
 		strview("const"), PrimitiveQualifier_upcast(PRIMITIVE_QUALIFIER_CONSTANT)
 	);
@@ -82,6 +88,10 @@ void Language_setupBuiltins(ParserContext *ctx) {
 	
 	Language_setupBuiltinFunction(frame, alc,
 		strview("@"), Language_builtin_ptrtype_toFunction(mla, alc)
+	);
+	
+	Language_setupBuiltinFunction(frame, alc,
+		strview("sizeof"), Language_builtin_sizeof_toFunction(mla, alc)
 	);
 
 }

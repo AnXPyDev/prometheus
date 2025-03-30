@@ -39,7 +39,12 @@ void GetPointerNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult
 		return;
 	}
 
-	out_result->value = SimValue_create(ptrval, ptr->T, context->temp_alc);
+	if (Type_equalPrimitive(Type_strip(ptr->T), PRIMITIVE_TYPE_ANY)) {
+		out_result->value = *(SimValue*)ptrval;
+		return;
+	}
+
+	out_result->value = SimValue_create_nocopy(ptrval, ptr->T);
 }
 
 const ISimNode ISimNode_GetPointerNode = {

@@ -137,3 +137,67 @@ int BuiltinNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
 const IParserNode IParserNode_BuiltinNode = {
 	.eval_flags = &BuiltinNode_ParserNode_eval_flags
 };
+
+// GetElementNode
+#define this ((GetElementNode*)vthis)
+
+int GetElementNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	// if the current stack contains the memberlist owning the member we want to get
+	// we need to rebuild the stack so the simulation can access it
+	if	(ParserFrame_getMemberOwner(ctx->frame, this->member)) {
+		// if there is no value available at parsetime for this member
+		// it is impossible to simulate at parsetime
+		if (!ParserFrame_getValue(ctx->frame, this->member))
+			return PARSERNODE_EVAL_FLAG_IMPOSSIBLE;
+		return PARSERNODE_EVAL_FLAG_STACK;
+	}
+	return 0;
+}
+
+#undef this
+
+const IParserNode IParserNode_GetElementNode = {
+	.eval_flags = &GetElementNode_ParserNode_eval_flags
+};
+
+// SetElementNode
+#define this ((SetElementNode*)vthis)
+
+int SetElementNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	// cannot modify parser frames upwards
+	if (ParserFrame_getMemberOwner(ctx->frame, this->member))
+		return PARSERNODE_EVAL_FLAG_IMPOSSIBLE;
+	return ParserNode_eval_flags(this->value, ctx);
+}
+
+#undef this
+
+const IParserNode IParserNode_SetElementNode = {
+	.eval_flags = &SetElementNode_ParserNode_eval_flags
+};
+
+// GetValueElementNode
+#define this ((GetValueElementNode*)vthis)
+
+int GetValueElementNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	return ParserNode_eval_flags(this->value, ctx);
+}
+
+#undef this
+
+const IParserNode IParserNode_GetValueElementNode = {
+	.eval_flags = &GetValueElementNode_ParserNode_eval_flags
+};
+
+// GetPointerElementNode
+#define this ((GetPointerElementNode*)vthis)
+
+int GetPointerElementNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	return ParserNode_eval_flags(this->value, ctx);
+}
+
+#undef this
+
+const IParserNode IParserNode_GetPointerElementNode = {
+	.eval_flags = &GetPointerElementNode_ParserNode_eval_flags
+};

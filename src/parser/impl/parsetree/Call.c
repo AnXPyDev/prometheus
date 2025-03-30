@@ -13,6 +13,10 @@ bool ParseTree_sub_call(
 		return false;
 	}
 
+	#ifdef BUILD_DEBUG
+	PrintFmt(this->ctx->dbgstream, "sub_call result: {}\n", Node_repr(result.node));
+	#endif
+
 	return ParseTree_extendStateByNode(this, statep, result.node);
 }
 
@@ -26,6 +30,51 @@ void ParseTree_branch_call(
 	opt->header.type = PARSETREE_OPTION_SUB;
 	opt->subf = &ParseTree_sub_call;
 	*(Array*)opt->payload = state_fun->funcs;
+
+	ParseTree_pushOption(this, opt);
+}
+
+typedef struct {
+	FunctionType *FT;
+	Node node;
+} ParseTree_DYNCALL;
+
+bool ParseTree_sub_dynCall(
+	ParseTree *this, TokenStream *ts, ParseTreeState **statep, void *payload
+) {
+	ParseTree_DYNCALL *info = payload;
+	
+	ParserResult result = ParserResult_NULL;
+	Parser_parseDynCall(info->FT, info->node, ts, this->ctx, &result);
+	if (Parser_checkfwd(&result, this->result)) return false;
+	
+	Token *token = TokenStream_next(ts);
+	if (token->type != TOKEN_TYPE_BRACE_CLOSE) {
+		Parser_throws(this->ctx, &token->src, PARSER_RESULT_PANIC, "Expected closing brace for arglist", this->result);
+		return false;
+	}
+
+	#ifdef BUILD_DEBUG
+	PrintFmt(this->ctx->dbgstream, "sub_call result: {}\n", Node_repr(result.node));
+	#endif
+
+	return ParseTree_extendStateByNode(this, statep, result.node);
+}
+
+void ParseTree_branch_dynCall(
+	ParseTree *this, Token *token, ParseTreeState *state
+) {
+	ParseTreeState_NODE *st_node = (ParseTreeState_NODE*)state;
+	Type RT = Type_strip(Node_resultType(st_node->node, this->ctx->tmp_alc));
+	if (!Type_isFunctionType(RT)) return;
+
+	ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub) + sizeof(ParseTree_DYNCALL));
+	opt->header.type = PARSETREE_OPTION_SUB;
+	opt->header.next_token = token + 1;
+	opt->subf = &ParseTree_sub_dynCall;
+	*(ParseTree_DYNCALL*)opt->payload = (ParseTree_DYNCALL) {
+		.FT = RT.object, st_node->node
+	};
 
 	ParseTree_pushOption(this, opt);
 }

@@ -119,6 +119,11 @@ MemberList *Parser_parseFunctionArgs(TokenStream *ts, ParserContext *ctx, Parser
 
 		ParserIntrin_DECLARATION *decl = (ParserIntrin_DECLARATION*)intrin;
 
+		if (Type_equalPrimitive(Type_strip(decl->type), PRIMITIVE_TYPE_AUTO)) {
+			Parser_throws(ctx, &here->src, PARSER_RESULT_PANIC, "Function argument type cannot be inferred", out);
+			return NULL;
+		}
+
 		MemberList_add(mlargs, decl->identifier, decl->qualifier, decl->type);
 
 		if (0) err_invalid_type: {

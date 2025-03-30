@@ -1,3 +1,15 @@
-const struct { int result } test(struct { int x, int y } input) {
-	print("Heja hopa\n");
+type Vector2D = struct { int x, int y };
+
+void setVector(@(Vector2D) this, int x, int y) {
+	this.x =ptr x;
+	this.y =ptr y;
 }
+
+Vector2D test;
+
+setVector(&ptr test, 5, 10);
+
+print(test.x);
+print("\n");
+print(test.y);
+print("\n");

@@ -1,6 +1,9 @@
 void g_ParserNode_setup_extension(void) {
 	INode_GetNode.pext = IParserNode_GetNode;
 	INode_SetNode.pext = IParserNode_SetNode;
+	INode_GetElementNode.pext = IParserNode_GetElementNode;
+	INode_GetValueElementNode.pext = IParserNode_GetValueElementNode;
+	INode_SetElementNode.pext = IParserNode_SetElementNode;
 	INode_CastNode.pext = IParserNode_CastNode;
 	INode_SequenceNode.pext = IParserNode_SequenceNode;
 	INode_ValueNode.pext = IParserNode_ValueNode;
@@ -11,6 +14,7 @@ void g_ParserNode_setup_extension(void) {
 	INode_ControlNode.pext = IParserNode_ControlNode;
 	INode_CatchNode.pext = IParserNode_CatchNode;
 	INode_GetPointerNode.pext = IParserNode_GetPointerNode;
+	INode_GetPointerElementNode.pext = IParserNode_GetPointerElementNode;
 	INode_SetPointerNode.pext = IParserNode_SetPointerNode;
 	INode_TakePointerNode.pext = IParserNode_TakePointerNode;
 	INode_LoopNode.pext = IParserNode_LoopNode;

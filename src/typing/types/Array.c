@@ -14,7 +14,7 @@ Type ArrayType_create(Type T, Size size, Allocator alc) {
 #define this ((ArrayType*)vthis)
 
 void Printable_ArrayType_print(void *vthis, OutStream os, StringView fmt) {
-    PrintFmt(os, "Array<{%u}; {}>", repr(unsigned int, (unsigned int)this->size), Type_repr(this->T));
+    PrintFmt(os, "Array<{}; {}>", repr(Size, this->size), Type_repr(this->T));
 }
 
 const IPrintable IPrintable_ArrayType = {

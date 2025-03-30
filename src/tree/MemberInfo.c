@@ -25,7 +25,7 @@ MemberListInfo *MemberListInfo_generate(MemberList *memberlist, Size align, Allo
 
 		*(ip++) = (MemberInfo) {
 			.typeinfo = ti,
-			.offset = offset,
+			.offset = (ptrdiff_t)offset,
 			.hash = hash,
 			.flags = (isAny ? MEMBERINFO_FLAG_ANY : 0)
 		};
@@ -38,6 +38,6 @@ MemberListInfo *MemberListInfo_generate(MemberList *memberlist, Size align, Allo
 	return this;
 }
 
-Size MemberList_getMemberOffset(MemberListInfo *this, Member *member) {
+ptrdiff_t MemberList_getMemberOffset(MemberListInfo *this, Member *member) {
 	return this->info[member->index].offset;
 }

@@ -145,3 +145,11 @@ bool Type_isStructType(Type this) {
 MemberListInfo *StructType_generateMemberListInfo(MemberList *memberlist, Allocator alc) {
 	return MemberListInfo_generate(memberlist, STRUCT_MEMORY_ALIGNMENT, alc);
 }
+
+ptrdiff_t StructType_getMemberOffset(StructType *this, Member *member) {
+	return MemberList_getMemberOffset(this->info, member);
+}
+
+Member *StructType_getMember(StructType *this, BufferView identifier) {
+	return MemberList_matching(this->memberlist, identifier);
+}

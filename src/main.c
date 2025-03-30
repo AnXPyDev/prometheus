@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
 	SimNode_evaluate(presult.node, &context, &result);
 
 	if (result.control) {
-		PrintFmt(g_os_stdout, "interrupt: {%p} -> {%p} {}\n", repr(void*, result.control_origin), repr(void*, result.control_target), strrepr(ESimControlSignal_REPR[result.control]));
+		PrintFmt(g_os_stdout, "interrupt: {} -> {} {}\n", repr(ptr_t, result.control_origin), repr(ptr_t, result.control_target), strrepr(ESimControlSignal_REPR[result.control]));
 	}
 
 	PrintFmt(g_os_stdout, "result: {}\n", SimValue_repr(&result.value));

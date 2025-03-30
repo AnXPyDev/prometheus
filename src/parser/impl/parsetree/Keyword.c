@@ -50,10 +50,12 @@ void ParseTree_branch_keyword(
 			}
 		} break;
 
+		case PARSETREE_STATE_MEMBER_ELEMENT:
 		case PARSETREE_STATE_MEMBER: {
 			switch (kw) {
 				case PARSER_KEYWORD_SET: goto kw_set_member;
 				case PARSER_KEYWORD_SET_PTR: goto kw_setptr;
+				case PARSER_KEYWORD_CAST: goto kw_cast;
 				default:;
 			}
 		} break;
@@ -64,7 +66,8 @@ void ParseTree_branch_keyword(
 				default:;
 			}
 		} break;
-
+		
+		case PARSETREE_STATE_NODE_ELEMENT:
 		case PARSETREE_STATE_NODE: {
 			switch (kw) {
 				case PARSER_KEYWORD_SET_PTR: goto kw_setptr;

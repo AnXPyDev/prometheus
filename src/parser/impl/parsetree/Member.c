@@ -1,8 +1,3 @@
-typedef struct {
-	ParseTreeState header;
-	Member *member;
-} ParseTreeState_MEMBER;
-
 void ParseTree_branch_member(
 	ParseTree *this, Token *token, ParseTreeState *state, Member *member
 ) {

@@ -1,6 +1,10 @@
 void g_SimNode_setup_extension(void) {
 	INode_GetNode.simext = ISimNode_GetNode;
+	INode_GetElementNode.simext = ISimNode_GetElementNode;
+	INode_GetValueElementNode.simext = ISimNode_GetValueElementNode;
+	INode_GetPointerElementNode.simext = ISimNode_GetPointerElementNode;
 	INode_SetNode.simext = ISimNode_SetNode;
+	INode_SetElementNode.simext = ISimNode_SetElementNode;
 	INode_CastNode.simext = ISimNode_CastNode;
 	INode_SequenceNode.simext = ISimNode_SequenceNode;
 	INode_ValueNode.simext = ISimNode_ValueNode;

@@ -5,6 +5,10 @@ typedef struct {
 
 void ParseTree_branch_identifier(ParseTree *this, Token *token, ParseTreeState *state) {
 	switch (state->type) {
+		case PARSETREE_STATE_ACCESS_NODE:
+		case PARSETREE_STATE_ACCESS_MEMBER:
+			ParseTree_branch_accessByIdentifier(this, token, state);
+			return;
 		case PARSETREE_STATE_TYPE:
 		case PARSETREE_STATE_TYPE_AND_QUALIFIER:
 			ParseTree_branch_declaration(this, token, state);

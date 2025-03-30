@@ -25,10 +25,14 @@ void ParseTree_branch_brace(ParseTree *this, Token *token, ParseTreeState *state
 		case PARSETREE_STATE_FUNCTION: goto handle_call;
 		case PARSETREE_STATE_TYPE: goto handle_fanon;
 		case PARSETREE_STATE_DECLARATION: goto handle_fdecl;
+		case PARSETREE_STATE_NODE: goto handle_node;
 		//case PARSETREE_STATE_NONE: goto handle_braced;
 		default: goto handle_braced;
 	}
-		
+
+	if (0) handle_node: {
+		ParseTree_branch_dynCall(this, token, state);
+	}
 
 	if (0) handle_braced: {
 		ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub));

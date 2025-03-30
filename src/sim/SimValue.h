@@ -23,6 +23,12 @@ SimValue SimValue_create(const void *data, Type T, Allocator alc) {
 	return (SimValue) { .type = type, .data = new_data };
 }
 
+SimValue SimValue_create_nocopy(const void *data, Type T) {
+	return (SimValue) {
+		.type = T, .data = data
+	};
+}
+
 SimValue SimValue_copy(SimValue this, Allocator alc) {
 	if (SimValue_isNull(this)) return SimValue_NULL;
 	return SimValue_create(this.data, this.type, alc);

@@ -16,7 +16,7 @@ Node ControlNode_create(ESimControlSignal signal, void *target, Node value, Allo
 #define this ((ControlNode*)vthis)
 
 void ControlNode_print(void *vthis, OutStream os, StringView fmt) {
-	PrintFmt(os, "Control({} -> {%p}; {})", strrepr(ESimControlSignal_PRETTY[this->signal]), repr(void*, this->target), Node_repr(this->value));
+	PrintFmt(os, "Control({} -> {}; {})", strrepr(ESimControlSignal_PRETTY[this->signal]), repr(ptr_t, this->target), Node_repr(this->value));
 }
 
 Type ControlNode_resultType(void *vthis, Allocator alc) {

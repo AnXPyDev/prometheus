@@ -80,6 +80,7 @@ bool ParseTree_resolveState(ParseTree *this, TokenStream *ts, ParseTreeState **s
 	switch (state->type) {
 		case PARSETREE_STATE_NODE: goto handle_node;
 		case PARSETREE_STATE_EXTEND_NODE: goto handle_ext_node;
+		case PARSETREE_STATE_NODE_ELEMENT: goto handle_node_element;
 		default:;
 	}
 
@@ -93,6 +94,21 @@ bool ParseTree_resolveState(ParseTree *this, TokenStream *ts, ParseTreeState **s
 		ParseTreeState_NODE *state_node = (ParseTreeState_NODE*)state;
 		if (Node_isValueNode(state_node->node)) goto quit;
 		goto eval_node;
+	}
+	
+	// TODO remove branch
+	if (0) handle_node_element: {
+		ParseTreeState_NODE_ELEMENT *state_elm = (ParseTreeState_NODE_ELEMENT*)state;
+		if (Node_isValueNode(state_elm->node.node)) {
+			ValueNode *val = state_elm->node.node.object;
+			ParseTreeState_NODE *state_node = ParseTree_stalloc(this, sizeof(ParseTreeState_NODE));
+			state_node->header.type = PARSETREE_STATE_NODE;
+			state_node->node = ValueNode_create(state_elm->type, val->data + state_elm->offset, this->ctx->program_alc);
+			*statep = (ParseTreeState*)state_node;
+			goto quit;
+		} else {
+			goto eval_node;
+		}
 	}
 
 	if (0) eval_node: {
@@ -117,6 +133,10 @@ bool ParseTree_resolveState(ParseTree *this, TokenStream *ts, ParseTreeState **s
 		ParserResult result = ParserResult_NULL;
 		ParserNode_evaluate(state_node->node, eval_flags, this->ctx, &result);
 		if (Parser_checkfwd(&result, this->result)) return false;
+
+		#ifdef BUILD_DEBUG
+		PrintFmt(this->ctx->dbgstream, "eval_node: {}\neval_result: {}\n", Node_repr(state_node->node), Node_repr(result.node));
+		#endif
 
 		state_node->node = result.node;
 		goto begin;
@@ -145,7 +165,9 @@ void ParseTree_stateToNode(
 	switch (state->type) {
 		case PARSETREE_STATE_NONE: goto handle_none;
 		case PARSETREE_STATE_NODE: goto handle_node;
+		case PARSETREE_STATE_NODE_ELEMENT: goto handle_node_element;
 		case PARSETREE_STATE_MEMBER: goto handle_member;
+		case PARSETREE_STATE_MEMBER_ELEMENT: goto handle_member_element;
 		case PARSETREE_STATE_TYPE: goto handle_type;
 		case PARSETREE_STATE_QUALIFIER: goto handle_qualifier;
 		//case PARSETREE_STATE_IDENTIFIER: goto handle_identifier;
@@ -158,6 +180,14 @@ void ParseTree_stateToNode(
 	if (0) handle_node: {
 		ParseTreeState_NODE *state_node = (ParseTreeState_NODE*)state;
 		out->node = state_node->node;
+	}
+
+	if (0) handle_node_element: {
+		ParseTreeState_NODE_ELEMENT *state_elm = (ParseTreeState_NODE_ELEMENT*)state;
+
+		out->node = GetValueElementNode_create(
+			state_elm->node.node, state_elm->offset, state_elm->type, this->ctx->program_alc
+		);
 	}
 
 	if (0) handle_member: {
@@ -181,6 +211,14 @@ void ParseTree_stateToNode(
 		}
 	}
 
+	if (0) handle_member_element: {
+		ParseTreeState_MEMBER_ELEMENT *state_elm = (ParseTreeState_MEMBER_ELEMENT*)state;
+
+		out->node = GetElementNode_create(
+			state_elm->member.member, state_elm->offset, state_elm->type, this->ctx->program_alc
+		);
+	}
+	
 	if (0) handle_type: {
 		ParseTreeState_TYPE *state_type = (ParseTreeState_TYPE*)state;
 		Type type = Type_copy(state_type->type, this->ctx->program_alc);
@@ -294,7 +332,15 @@ void ParseTree_parseNode(TokenStream *ts, ParserContext *ctx, ParserResult *out)
 
 		if (!ParseTree_dispatchOption(&this, ts, &state, option)) goto handle_error;
 
-		if (this.flags & PARSENODE_FLAG_NO_MARCH) break;
+		token = TokenStream_probe(ts);
+
+		// always march if the next token is an accessor or index
+		if (this.flags & PARSENODE_FLAG_NO_MARCH) switch (token->type) {
+			default: goto handle_end;
+			case TOKEN_TYPE_ACCESSOR:;
+			case TOKEN_TYPE_SBRACE_OPEN:;
+		}
+
 		if (0) handle_end: break;
 	}
 

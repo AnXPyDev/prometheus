@@ -27,9 +27,9 @@ void Function_destroy(Function *this, Allocator alc) {
 
 void Printable_FunctionValue_print(void *vthis, OutStream os, StringView fmt) {
 	if (this->closure) {
-		PrintFmt(os, "Function({%p}; @closure={%p})", repr(void*, this->function), repr(void*, this->closure));
+		PrintFmt(os, "Function({}; @closure={})", repr(ptr_t, this->function), repr(ptr_t, this->closure));
 	} else {
-		PrintFmt(os, "Function({%p})", repr(void*, this->function));
+		PrintFmt(os, "Function({})", repr(ptr_t, this->function));
 	}
 }
 

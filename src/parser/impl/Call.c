@@ -80,6 +80,33 @@ bool Parser_parseArgListCandidate(
 	return !error;
 }
 
+void Parser_parseDynCall(
+	FunctionType *FT, Node node, TokenStream *ts, ParserContext *ctx, ParserResult *out
+) {
+	ParserCache cache;
+	ParserCache_create(&cache, ctx->tmp_alc);
+
+	Token *here = TokenStream_probe(ts);
+
+	Array args;
+
+	#ifdef BUILD_DEBUG
+	PrintFmt(ctx->dbgstream, "dyncall candidate: {}\n", Type_repr(FunctionType_upcast(FT)));
+	#endif
+
+	TokenStream_set(ts, here);
+	if (Parser_parseArgListCandidate(
+		&cache, FT, ts, ctx, &args
+	)) goto found_arglist;
+
+
+	Parser_throws(ctx, &here->src, PARSER_RESULT_PANIC, "No suitable function dyncall", out);
+	return;
+
+	found_arglist:;
+
+	out->node = CallNode_createDyn(node, args, ctx->program_alc);
+}
 
 void Parser_parseCall(Array funcs, TokenStream *ts, ParserContext *ctx, ParserResult *out) {
 	ParserCache cache;
@@ -92,8 +119,11 @@ void Parser_parseCall(Array funcs, TokenStream *ts, ParserContext *ctx, ParserRe
 	Parser_CallCandidate *it = funcs.data;
 	Parser_CallCandidate *end = it + funcs.size;
 	for (; it < end; it++) {
-		TokenStream_set(ts, here);
+		#ifdef BUILD_DEBUG
 		PrintFmt(ctx->dbgstream, "call candidate: {} {}\n", Type_repr(FunctionType_upcast(it->ft)), FunctionValue_repr(it->fv));
+		#endif
+
+		TokenStream_set(ts, here);
 		if (Parser_parseArgListCandidate(
 			&cache, it->ft, ts, ctx, &args
 		)) goto found_arglist;

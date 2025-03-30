@@ -24,7 +24,7 @@ Node BuiltinNode_create(const void *builtin, Type result, Array nodes, int flags
 #define this ((BuiltinNode*)vthis)
 
 void BuiltinNode_print(void *vthis, OutStream os, StringView fmt) {
-	PrintFmt(os, "Builtin({%p}; ", repr(const void*, this->builtin));
+	PrintFmt(os, "Builtin({}; ", repr(ptr_t, this->builtin));
 	Node *end = this->nodes + this->size;
 	Node *it;
 	for (it = this->nodes; it < end - 1; it++) {

@@ -21,6 +21,11 @@ void CastNode_SimNode_evaluate(void *vthis, SimContext *context, SimResult *out_
 		return;
 	}
 
+	if (Type_equalPrimitive(Type_strip(this->T), PRIMITIVE_TYPE_ANY)) {
+		out_result->value = SimValue_create(&result.value, this->T, context->temp_alc);
+		return;
+	}
+
 	if (Type_size(this->T) != Type_size(result.value.type)) {
 		SimResult_throwMessage("CastNode: type size mismatch", vthis, context, out_result);
 		return;

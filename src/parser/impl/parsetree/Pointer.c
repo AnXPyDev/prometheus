@@ -69,14 +69,16 @@ void ParseTree_branch_getptr(ParseTree *this, Token *token, ParseTreeState *stat
 }
 
 bool ParseTree_sub_setptr(ParseTree *this, TokenStream *ts, ParseTreeState **statep, void *payload) {
+	ParseTreeState *state = *(ParseTreeState**)payload;
+
 	ParserResult result = ParserResult_NULL;
 	
-	ParseTree_stateToNode(this, *statep, &result);
+	ParseTree_stateToNode(this, state, &result);
 	if (Parser_checkfwd(&result, this->result)) return false;
 
 	Node node = result.node;
 
-	Type NT = Node_resultType(node, this->ctx->tmp_alc);
+	Type NT = Type_strip(Node_resultType(node, this->ctx->tmp_alc));
 
 	if (!Type_isPointerType(NT)) goto err_wrong_type;
 
@@ -100,10 +102,11 @@ bool ParseTree_sub_setptr(ParseTree *this, TokenStream *ts, ParseTreeState **sta
 }
 
 void ParseTree_branch_setptr(ParseTree *this, Token *token, ParseTreeState *state) {
-	ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub));
+	ParseTreeOption_Sub *opt = ParseTree_stalloc(this, sizeof(ParseTreeOption_Sub) + sizeof(ParseTreeState*));
 	opt->header.next_token = token + 1;
 	opt->header.type = PARSETREE_OPTION_SUB;
 	opt->subf = &ParseTree_sub_setptr;
+	*(ParseTreeState**)opt->payload = state;
 
 	ParseTree_pushOption(this, opt);
 }

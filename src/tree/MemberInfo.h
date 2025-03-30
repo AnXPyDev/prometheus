@@ -5,7 +5,7 @@ enum {
 typedef struct {
 	TypeInfo typeinfo;
 	Hash hash;
-	Size offset;
+	ptrdiff_t offset;
 	int flags;
 } MemberInfo;
 
