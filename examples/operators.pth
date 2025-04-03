@@ -1,0 +1,24 @@
+int _op_binary +(int a, int b) add(a, b);
+int _op_binary -(int a, int b) add(a, neg(b));
+int _op_binary *(int a, int b) {
+	int x = 0;
+	loop {
+		if (a) 0 else break;
+		x = add(x, b);
+		a = add(a, neg(1));
+	}
+	return x;
+}
+
+print(5 + 5);
+print("\n");
+print(10 - 2 + 5);
+print("\n");
+print(10 * 20);
+print("\n");
+
+
+print(
+	if (1) { if (0) 2 } else 3
+);
+print("\n");

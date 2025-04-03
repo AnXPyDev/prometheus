@@ -1,0 +1,34 @@
+type Vector2D = struct { int x, int y };
+
+type Message = struct {
+	ByteSpan str;
+	int n;
+};
+
+void setVector(@(Vector2D) this, int x, int y) {
+	this.x =ptr x;
+	this.y =ptr y;
+}
+
+Vector2D test;
+
+setVector(&ptr test, 10, 20);
+
+print(test.x);
+print("\n");
+print(test.y);
+print("\n");
+
+void print(@(Message) msg) {
+	print(*ptr msg.str);
+	print(" ");
+	print(*ptr msg.n);
+	print("\n");
+}
+
+Message msg;
+msg.str = "Hello World!";
+msg.n = 124;
+
+print(&ptr msg);
+

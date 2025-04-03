@@ -81,6 +81,10 @@ void Language_setupBuiltins(ParserContext *ctx) {
 	Language_setupBuiltinFunction(frame, alc,
 		strview("add"), Language_builtin_sum_int_toFunction(mla, alc)
 	);
+	
+	Language_setupBuiltinFunction(frame, alc,
+		strview("add"), Language_builtin_offset_ptr_toFunction(mla, alc)
+	);
 
 	Language_setupBuiltinFunction(frame, alc,
 		strview("neg"), Language_builtin_neg_int_toFunction(mla, alc)

@@ -23,6 +23,7 @@ void Parser_parseControl(ESimControlSignal signal, TokenStream *ts, ParserContex
 #define this ((ControlNode*)vthis)
 
 int ControlNode_ParserNode_eval_flags(void *vthis, ParserContext *ctx) {
+	return PARSERNODE_EVAL_FLAG_IMPOSSIBLE;
 	return ParserNode_eval_flags(this->value, ctx);
 }
 

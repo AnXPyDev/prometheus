@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 
 	FileInStream fis = FileInStream_new(NULL);
 
-	const char *fname = "./examples/decl.pth";
+	const char *fname = "./examples/debug.pth";
 
 	if (argc > 1) {
 		fname = argv[1];

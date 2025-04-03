@@ -1,0 +1,3 @@
+int _op_binary test(int a, int b) {
+	add(a, b);
+}

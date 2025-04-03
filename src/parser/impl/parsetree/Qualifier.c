@@ -38,7 +38,8 @@ void ParseTree_branch_qualifier(
 			}, this->state_alc);
 		}
 
-		ParseTree_pushOption(this, opt);
+		//ParseTree_pushOption(this, opt);
+		ParseTree_dispatch(this, token + 1, (ParseTreeState*)state_qual);
 	}
 
 	if (0) with_type: {
@@ -70,6 +71,7 @@ void ParseTree_branch_qualifier(
 			}, this->state_alc);
 		}
 
-		ParseTree_pushOption(this, opt);
+		//ParseTree_pushOption(this, opt);
+		ParseTree_dispatch(this, token + 1, (ParseTreeState*)state_tq);
 	}
 }

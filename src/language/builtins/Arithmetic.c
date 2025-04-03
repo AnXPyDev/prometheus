@@ -66,3 +66,41 @@ Function *Language_builtin_neg_int_toFunction(MemberListAllocator *mla, Allocato
 
 	return func;
 }
+
+// offset pointer
+void Language_builtin_offset_ptr_(Array args, SimContext *ctx, SimResult *out) {
+	SimValue *ptr_val = args.data;
+	SimValue *offset_val = ptr_val + 1;
+
+	char *ptr = *(char**)ptr_val->data;
+	int offset = *(int*)offset_val->data;
+
+	ptr += offset;
+
+	out->value = SimValue_create(&ptr, TYPE_BYTEPTR, ctx->temp_alc);
+}
+
+Sim_builtin_fn_t Language_builtin_offset_ptr = &Language_builtin_offset_ptr_;
+
+Function *Language_builtin_offset_ptr_toFunction(MemberListAllocator *mla, Allocator alc) {
+	MemberList *args = MemberList_create(mla);
+	
+	Member *arg_ptr = MemberList_add(
+		args, strview("ptr"), Qualifier_NULL, TYPE_BYTEPTR
+	);
+	
+	Member *arg_offset = MemberList_add(
+		args, strview("offset"), Qualifier_NULL, TYPE_BYTEPTR
+	);
+
+	Function *func = Function_create(args,
+		BuiltinNode_create(&Language_builtin_offset_ptr, TYPE_BYTEPTR,
+			(Array) { .size = 2, .data = (Node[]) {
+				GetNode_create(arg_ptr, alc),
+				GetNode_create(arg_offset, alc),
+			} }
+		, BUILTIN_NODE_FLAG_PURE, alc)
+	, alc);
+
+	return func;
+}

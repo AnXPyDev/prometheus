@@ -22,3 +22,5 @@ modifyVector(&ptr test, 31);
 
 print(test);
 print("\n");
+
+print(&ptr test);

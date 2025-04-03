@@ -1,0 +1,10 @@
+void recursionMessage(ByteSpan message, int n) {
+	print(message); print(" "); print(n); print("\n");
+	if (n) recursionMessage(message, add(n, neg(1)));
+}
+
+void recursionMessage(int n) recursionMessage("No message", n);
+
+recursionMessage("Hello", 10);
+recursionMessage(5);
+

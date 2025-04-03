@@ -4,6 +4,7 @@ typedef struct {
     Type T;
 } PointerType;
 
+Type ConstPointerType_upcast(PointerType*);
 Type PointerType_upcast(PointerType*);
 Type PointerType_create(Type T, Allocator alc) {
     PointerType *this = Allocator_malloc(alc, sizeof(PointerType));
@@ -43,6 +44,20 @@ Type PointerType_copy(void *vthis, Allocator alc) {
     return PointerType_create(this->T, alc);
 }
 
+Type ConstPointerType_copy(void *vthis, Allocator alc) {
+    return ConstPointerType_upcast(this);
+}
+
+void ConstPointerType_destroy(void *vthis, Allocator alc) {}
+
+Type PointerType_constcast(void *vthis) {
+    return ConstPointerType_upcast(this);
+}
+
+Type PointerType_recast(void *vthis) {
+    return PointerType_upcast(this);
+}
+
 bool PointerType_equal(void *vthis, void *vother) {
     PointerType *other = vother;
     return Type_equal(this->T, other->T);
@@ -71,14 +86,32 @@ const IType IType_PointerType = {
     .destroy = &PointerType_destroy,
     .equal = &PointerType_equal,
     .match = &PointerType_match,
-    .hash = &PointerType_hash
+    .hash = &PointerType_hash,
+    .constcast = &PointerType_constcast,
+    .recast = &PointerType_recast
+};
+
+const IType IType_ConstPointerType = {
+    .repr_ = &PointerType_repr,
+    .info = &PointerType_info,
+    .copy = &ConstPointerType_copy,
+    .destroy = &ConstPointerType_destroy,
+    .equal = &PointerType_equal,
+    .match = &PointerType_match,
+    .hash = &PointerType_hash,
+    .constcast = &PointerType_constcast,
+    .recast = &PointerType_recast
 };
 
 Type PointerType_upcast(PointerType *this) {
     return (Type) { .interface = &IType_PointerType, .object = this };
 }
 
+Type ConstPointerType_upcast(PointerType *this) {
+    return (Type) { .interface = &IType_ConstPointerType, .object = this };
+}
+
 bool Type_isPointerType(Type this) {
-    return this.interface == &IType_PointerType;
+    return this.interface == &IType_PointerType || this.interface == &IType_ConstPointerType;
 }
 
