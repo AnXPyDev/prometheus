@@ -40,9 +40,6 @@ void MemberList_deinit(MemberList *this) {
 }
 
 Member *MemberList_add(MemberList *this, BufferView I, Qualifier Q, Type T) {
-
-    BufferView_hash(I);
-
     Member **head = HashMap_ensure(
         this->heads, BufferView_hash(I), sizeof(Member*),
         MemberList_headKey(&I), this->alc

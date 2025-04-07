@@ -114,13 +114,13 @@ int main(int argc, char **argv) {
 	
 	SimState_init(&simstate);
 
-
 	SimContext context = {
 		.state = &simstate,
 		.temp_alc = alc
 	};
 
-	context.frame = SimStackFrame_create(NULL, pframe.memberlist, SimCache_getMemberList(&simstate.cache, pframe.memberlist), simstate.alc, simstate.alc);
+	simstate.root_frame = ParserFrame_toSimFrame(&pframe, &simstate);
+	context.frame = simstate.root_frame;
 
 	SimResult result = SimResult_NULL;
 	SimNode_evaluate(presult.node, &context, &result);

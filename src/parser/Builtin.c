@@ -1,6 +1,6 @@
 void Parser_setupKeyword(ParserFrame *frame, const char *id, int keyword_code, Allocator alc) {
 	*(int*)ParserFrame_setupMemberWithValue(
-		frame, strview(id), PrimitiveType_upcast(PRIMITIVE_TYPE_KEYWORD)
+		frame, strview(id), Qualifier_NULL, PrimitiveType_upcast(PRIMITIVE_TYPE_KEYWORD)
 	) = keyword_code;
 }
 

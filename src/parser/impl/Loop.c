@@ -1,6 +1,6 @@
 void Parser_parseLoop(TokenStream *ts, ParserContext *ctx, ParserResult *out) {
 	ParserResult result = ParserResult_NULL;
-	result.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END;
+	result.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END | PARSENODE_FLAG_NO_MARCH;
 	Parser_parseNode(ts, ctx, &result);
 	
 	if (Parser_checkfwd(&result, out)) return;

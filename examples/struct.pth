@@ -1,34 +1,31 @@
 type Vector2D = struct { int x, int y };
 
-type Message = struct {
-	ByteSpan str;
-	int n;
-};
-
 void setVector(@(Vector2D) this, int x, int y) {
 	this.x =ptr x;
 	this.y =ptr y;
 }
 
-Vector2D test;
-
-setVector(&ptr test, 10, 20);
-
-print(test.x);
-print("\n");
-print(test.y);
-print("\n");
-
-void print(@(Message) msg) {
-	print(*ptr msg.str);
-	print(" ");
-	print(*ptr msg.n);
-	print("\n");
+void print(Vector2D this) {
+	print("Vector2D { x=");
+	print(this.x);
+	print(" y=");
+	print(this.y);
+	print(" }");
 }
 
-Message msg;
-msg.str = "Hello World!";
-msg.n = 124;
+Vector2D _op_binary +(Vector2D v1, Vector2D v2) {
+	Vector2D result;
+	result.x = v1.x + v2.x;
+	result.y = v1.y + v2.y;
+	return result;
+}
 
-print(&ptr msg);
+Vector2D foo; setVector(&ptr foo, 10, 20);
+Vector2D bar; setVector(&ptr bar, 5, 5);
 
+print("foo = "); print(foo); print("\n");
+print("bar = "); print(bar); print("\n");
+
+foo = foo + bar;
+
+print("foo = "); print(foo); print("\n");

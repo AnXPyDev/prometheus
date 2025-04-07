@@ -1,24 +1,21 @@
-int _op_binary +(int a, int b) add(a, b);
-int _op_binary -(int a, int b) add(a, neg(b));
-int _op_binary *(int a, int b) {
-	int x = 0;
+int _op_binary ^(int base, int exp) {
+	int result = 1;
 	loop {
-		if (a) 0 else break;
-		x = add(x, b);
-		a = add(a, neg(1));
+		if (exp <= 0) break;
+		exp = exp - 1;
+		result = result * base;
 	}
-	return x;
+	return result;
 }
 
-print(5 + 5);
-print("\n");
-print(10 - 2 + 5);
-print("\n");
-print(10 * 20);
-print("\n");
+int base = 2;
+int i = 0;
 
-
-print(
-	if (1) { if (0) 2 } else 3
-);
-print("\n");
+loop {
+	if (i > 10) break;
+	print(base); print(" ^ "); print(i); print(" = ");
+	print(base ^ i);
+	print("\n");
+	
+	i = i + 1;
+}

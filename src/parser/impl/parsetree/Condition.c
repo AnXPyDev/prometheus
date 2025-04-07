@@ -10,6 +10,7 @@ bool ParseTree_sub_condition(
 	node_state->node = result.node;
 
 	*statep = (ParseTreeState*)node_state;
+	this->done = true;
 	return true;
 }
 

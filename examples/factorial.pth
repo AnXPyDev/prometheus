@@ -1,0 +1,26 @@
+int factorial-recursion(int n) 
+	if (n <= 1) 1
+	else (n * factorial-recursion(n - 1));
+
+int factorial-loop(int n) {
+	int r = 1;
+	loop {
+		if (n <= 1) break;
+		r = r * n;
+		n = n - 1;
+	}
+	return r;
+}
+
+int i = 1;
+loop {
+	if (i > 10) break;
+
+	print(i); print("! = ");
+	print(factorial-recursion(i));
+	print(" ");
+	print(factorial-loop(i));
+	print("\n");
+
+	i = i + 1;
+}

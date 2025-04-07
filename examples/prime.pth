@@ -1,0 +1,22 @@
+void checkPrime(int p) {
+	int d = 2;	
+
+	bool isPrime = true;
+
+	loop {
+		if (d >= p) break;	
+		if ((p % d) == 0) {
+			isPrime = false;
+			break;
+		}
+		d = d + 1;
+	}
+
+	print(p);
+	print(if (isPrime) " is prime\n" else " is not prime\n");
+}
+
+checkPrime(5);
+checkPrime(15);
+checkPrime(4621);
+checkPrime(5279);

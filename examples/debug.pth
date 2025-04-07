@@ -1,3 +1,6 @@
-int _op_binary test(int a, int b) {
-	add(a, b);
+int main() {
+	print(true);
+	print(false);
 }
+
+main();

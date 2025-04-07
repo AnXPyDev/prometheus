@@ -161,7 +161,13 @@ void Parser_parseFunctionRoot(TokenStream *ts, ParserContext *ctx, ParserResult 
 	result.flags = PARSENODE_FLAG_NO_CONSUME_EXPLICIT_END | PARSENODE_FLAG_NO_MARCH;
 	Parser_parseNode(ts, &fctx, &result);
 
+
+
 	if (Parser_checkfwd(&result, out)) return;
+
+	#ifdef BUILD_DEBUG
+	PrintFmt(ctx->dbgstream, "FUNCTION ROOT: {}\n", Node_repr(result.node));
+	#endif
 
 	out->node = result.node;
 }

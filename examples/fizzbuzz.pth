@@ -1,0 +1,13 @@
+any fizzbuzz(int n)
+	if ((n % 15) == 0) "fizzbuzz"
+	else if ((n % 3) == 0) "fizz"
+	else if ((n % 5) == 0) "buzz"
+	else n
+
+int i = 1;
+loop {
+	if (i > 20) break;
+	print(fizzbuzz(i));
+	print(" ");
+	i = i + 1;
+}
