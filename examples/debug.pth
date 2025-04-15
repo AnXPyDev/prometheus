@@ -1,6 +1,0 @@
-int main() {
-	print(true);
-	print(false);
-}
-
-main();

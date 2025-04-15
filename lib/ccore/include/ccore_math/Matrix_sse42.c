@@ -1,0 +1,8 @@
+#define Matrix3F_mulva_sse42 Matrix3F_mulva_scalar
+#define Matrix3F_mulv_sse42 Matrix3F_mulv_scalar
+#define Matrix3F_mul_sse42 Matrix3F_mul_scalar
+
+#define Matrix4F_mulva_sse42 Matrix4F_mulva_scalar
+#define Matrix4F_mulv_sse42 Matrix4F_mulv_scalar
+#define Matrix4F_mult_sse42 Matrix4F_mult_scalar
+#define Matrix4F_mul_sse42 Matrix4F_mul_scalar
